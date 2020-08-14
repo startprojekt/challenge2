@@ -18,6 +18,7 @@ class MainViewTest(LiveServerTestCase):
         options = Options()
         options.add_argument('--headless')
         self.browser = WebDriver(options=options)
+        self.browser.implicitly_wait(10)
         super(MainViewTest, self).setUp()
 
     def tearDown(self) -> None:
@@ -26,7 +27,7 @@ class MainViewTest(LiveServerTestCase):
 
     def test_dashboard_page(self):
         # Run the page.
-        self.browser.get('http://127.0.0.1:8000/')
+        self.browser.get(self.live_server_url)
         self.assertEqual('Frank Benford\'s Law Project', self.browser.title)
         self.assertEqual(resolve('/').func.__name__, DashboardView.as_view().__name__)
 
@@ -41,11 +42,11 @@ class MainViewTest(LiveServerTestCase):
         element = WebDriverWait(self.browser, 5).until(
             expected_conditions.presence_of_element_located(
                 (By.ID, 'form-upload-dataset')))
-        self.assertEqual(self.browser.current_url, 'http://127.0.0.1:8000/upload/')
+        self.assertEqual(self.browser.current_url, self.live_server_url + '/upload/')
 
     def test_dataset_upload_form(self):
         # I navigate to the upload form page
-        self.browser.get('http://127.0.0.1:8000/upload/')
+        self.browser.get(self.live_server_url + '/upload/')
         self.assertEqual(resolve('/upload/').func.__name__, DatasetUploadView.as_view().__name__)
 
         form = self.browser.find_element_by_id('form-upload-dataset')

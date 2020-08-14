@@ -4,7 +4,8 @@ from django.http import HttpResponseRedirect
 from django.test import RequestFactory
 from django.test.testcases import TestCase
 
-from benford.views import DatasetUploadView
+from benford.models import Dataset
+from benford.views import DatasetUploadView, DatasetDetailView
 
 
 class ViewsTest(TestCase):
@@ -18,3 +19,16 @@ class ViewsTest(TestCase):
         self.assertIsNotNone(view.object)
         self.assertIsNotNone(re.match(r'[a-z]{10}', view.object.slug))
         self.assertIsInstance(response, HttpResponseRedirect)
+
+    def test_detail_view(self):
+        self.assertEqual(Dataset.objects.count(), 0)
+        Dataset.objects.create(title='My title', slug='abcdefghij')
+        request = RequestFactory().get('/dataset/abcdefghij/', )
+        view = DatasetDetailView()
+        view.setup(request, slug='abcdefghij')
+        response = view.dispatch(request)
+        self.assertEqual(response.status_code, 200)
+
+        context = view.get_context_data()
+        self.assertIn('title', context)
+        self.assertEqual(context['title'], 'My title')
