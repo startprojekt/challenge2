@@ -3,7 +3,7 @@ import time
 
 from django.conf import settings
 from django.test import LiveServerTestCase
-from django.urls import resolve, reverse
+from django.urls import resolve
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.webdriver import WebDriver
