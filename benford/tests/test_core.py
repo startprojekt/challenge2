@@ -4,7 +4,7 @@ from django.test.testcases import TestCase
 
 from benford.core import (
     get_first_significant_digit, map_significant_digits, count_occurences,
-    count_occurences_with_percentage,
+    count_occurences_with_percentage, BenfordAnalyzer,
 )
 from benford.tests.common import RAW_DATA_SAMPLE_1, INT_LIST_SAMPLE_1
 
@@ -51,24 +51,41 @@ class CoreTest(TestCase):
             {1: 7, 2: 2, 3: 3, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0})
 
         # Count occurences and calculate their percentage.
-        occurences_with_percentage_1 = count_occurences_with_percentage(significant_digits)
+        occurences_with_percentage_1 = count_occurences_with_percentage(
+            count_occurences(significant_digits))
         self.assertDictEqual(
             occurences_with_percentage_1, {
-                1: (7, Decimal('46.7')), 2: (2, Decimal('13.3')), 3: (3, Decimal('20')),
+                1: Decimal('46.7'), 2: Decimal('13.3'), 3: Decimal('20'),
                 # In some cases we can have same occurence values but
                 # different percentages (sum of the percentages must be 100 and
                 # it's forced on last value).
-                4: (1, Decimal('6.7')), 5: (1, Decimal('6.7')), 6: (1, Decimal('6.6')),
+                4: Decimal('6.7'), 5: Decimal('6.7'), 6: Decimal('6.6'),
             })
 
         # We can pass decimal_places to control percentage display/precision.
-        occurences_with_percentage_2 = count_occurences_with_percentage(significant_digits, decimal_places=0)
+        occurences_with_percentage_2 = count_occurences_with_percentage(
+            count_occurences(significant_digits), decimal_places=0)
         self.assertDictEqual(
             occurences_with_percentage_2, {
-                1: (7, Decimal('47')), 2: (2, Decimal('13')), 3: (3, Decimal('20')),
-                4: (1, Decimal('7')), 5: (1, Decimal('7')), 6: (1, Decimal('6')),
+                1: Decimal('47'), 2: Decimal('13'), 3: Decimal('20'),
+                4: Decimal('7'), 5: Decimal('7'), 6: Decimal('6'),
             })
 
         # Ensure we always have 100 percent for digit occurences.
         self.assertEqual(
-            sum(map(lambda x: x[1], occurences_with_percentage_2.values())), 100)
+            sum(occurences_with_percentage_2.values()), 100)
+
+
+class BenfordAnalyzerTest(TestCase):
+    def test_benford_analyzer(self):
+        analyzer = BenfordAnalyzer(occurences={1: 10, 2: 3, 3: 5, 4: 8})
+        self.assertEqual(len(analyzer.occurences), len(analyzer.percentages))
+
+        # Retrieve percentages individually
+        self.assertEqual(analyzer.get_percentage_of(1), Decimal('38.5'))
+        self.assertEqual(analyzer.get_percentage_of(2), Decimal('11.5'))
+        self.assertEqual(analyzer.get_percentage_of(3), Decimal('19.2'))
+        self.assertEqual(analyzer.get_percentage_of(4), Decimal('30.8'))
+
+        # Handle non-existent (not occured) digits.
+        self.assertEqual(analyzer.get_percentage_of(9), Decimal('0'))

@@ -1,10 +1,9 @@
 from django import forms
 from pydash import get
 
-from benford.models import Dataset
 
-
-class DatasetUploadForm(forms.ModelForm):
+class DatasetUploadForm(forms.Form):
+    title = forms.CharField(required=False)
     data_file = forms.FileField(required=False)
     data_raw = forms.CharField(widget=forms.Textarea(), required=False)
 
@@ -16,5 +15,4 @@ class DatasetUploadForm(forms.ModelForm):
         return super(DatasetUploadForm, self).clean()
 
     class Meta:
-        model = Dataset
         fields = ['title', 'data_file', 'data_raw', ]
