@@ -36,6 +36,8 @@ class DatasetDetailView(DetailView):
     model = Dataset
 
     def get_context_data(self, **kwargs):
+        self.object: Dataset
         ctx = super(DatasetDetailView, self).get_context_data(**kwargs)
         ctx['title'] = self.object.title
+        ctx['significant_digits'] = self.object.significant_digits.all().order_by('digit')
         return ctx

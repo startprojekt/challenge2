@@ -111,3 +111,14 @@ class MainViewTest(LiveServerTestCase):
         # We should see the page header.
         h1 = self.browser.find_element_by_tag_name('h1')
         self.assertEqual(h1.text, 'My dataset')
+
+        # Expect summary table
+        summary_table = self.browser.find_element_by_id('table-dataset-summary')
+
+        thead = summary_table.find_element_by_tag_name('thead')
+        thead_ths = thead.find_elements_by_css_selector('th')
+        self.assertEqual(len(thead_ths), 3)
+
+        tbody = summary_table.find_element_by_tag_name('tbody')
+        table_rows = tbody.find_elements_by_tag_name('tr')
+        self.assertEqual(len(table_rows), 9)

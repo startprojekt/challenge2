@@ -4,6 +4,23 @@
 
   <h1>{{ title }}</h1>
 
-  <table id="table-dataset-summary"></table>
+  <table id="table-dataset-summary">
+    <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for significant_digit in significant_digits %}
+      <tr>
+        <th>{{ significant_digit.digit }}</th>
+        <td>{{ significant_digit.occurences }}</td>
+        <td>{{ significant_digit.percentage }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 
 {% endblock %}

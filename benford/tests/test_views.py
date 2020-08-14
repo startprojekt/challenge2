@@ -40,3 +40,5 @@ class ViewsTest(TestCase):
         context = view.get_context_data()
         self.assertIn('title', context)
         self.assertEqual(context['title'], 'My title')
+
+        self.assertIn('significant_digits', context)
