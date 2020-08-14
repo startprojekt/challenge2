@@ -1,15 +1,17 @@
 from django.contrib.admindocs.views import ModelDetailView
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, FormView, DetailView
+from django.views.generic import TemplateView, FormView, DetailView, ListView
 
 from benford.core import BenfordAnalyzer
 from benford.forms import DatasetUploadForm
 from benford.models import Dataset
 
 
-class DashboardView(TemplateView):
+class DashboardView(ListView):
     template_name = 'benford/dashboard.html'
+    queryset = Dataset.objects.all()
+    paginate_by = 10
 
 
 class DatasetUploadView(FormView):

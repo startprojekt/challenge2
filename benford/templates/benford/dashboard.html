@@ -4,6 +4,16 @@
 
   <a href="{% url 'benford:upload_dataset' %}">Upload new dataset</a>
 
-  <table id="table-datasets"></table>
+  <table id="table-datasets">
+    {% for dataset in page_obj %}
+      <tr>
+        <td>
+          <a href="{{ dataset.get_absolute_url }}">
+            {{ dataset.display_title }}</a>
+        </td>
+        <td>{{ dataset.created_at }}</td>
+      </tr>
+    {% endfor %}
+  </table>
 
 {% endblock %}

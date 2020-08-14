@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.db.models import Count, Sum
+from django.urls import reverse
 
 from benford.utils import calc_percentage, generate_random_identifier
 
@@ -16,6 +17,12 @@ class Dataset(models.Model):
     def count_records(self) -> int:
         data = self.significant_digits.aggregate(Sum('occurences'))
         return data['occurences__sum']
+
+    def display_title(self):
+        return self.title or 'Untitled dataset'
+
+    def get_absolute_url(self):
+        return reverse('benford:dataset_detail', kwargs={'slug': self.slug})
 
     class Meta:
         ordering = ['-created_at', ]

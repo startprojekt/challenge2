@@ -5,12 +5,20 @@ from django.test import RequestFactory
 from django.test.testcases import TestCase
 
 from benford.models import Dataset
-from benford.views import DatasetUploadView, DatasetDetailView
+from benford.views import DatasetUploadView, DatasetDetailView, DashboardView
 
 
 class ViewsTest(TestCase):
+    def test_dashboard_view(self):
+        request = RequestFactory().get('/')
+        view = DashboardView()
+        view.setup(request)
+        response = view.dispatch(request)
+        context_data = view.get_context_data()
+        self.assertIn('page_obj', context_data)
+
     def test_upload_view(self):
-        request = RequestFactory().post("/upload/", data={
+        request = RequestFactory().post('/upload/', data={
             'data_raw': '1',
         })
         view = DatasetUploadView()

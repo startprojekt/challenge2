@@ -3,13 +3,15 @@ import time
 
 from django.conf import settings
 from django.test import LiveServerTestCase
-from django.urls import resolve
+from django.urls import resolve, reverse
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+from benford.core import BenfordAnalyzer
+from benford.models import Dataset
 from benford.views import DashboardView, DatasetUploadView
 
 
@@ -78,3 +80,34 @@ class MainViewTest(LiveServerTestCase):
 
         # And we land on a dataset page.
         self.assertIn('My first dataset', self.browser.title)
+
+    def test_dataset_detail_page(self):
+        # We create some dataset.
+        analyzer = BenfordAnalyzer(occurences={
+            1: 5735, 2: 3544, 3: 2341, 4: 1847, 5: 1559,
+            6: 1370, 7: 1166, 8: 1042, 9: 903,
+        }, title='My dataset')
+
+        # And save it to database.
+        dataset = analyzer.save()
+        self.assertEqual(Dataset.objects.count(), 1)
+
+        # Let's navigate to main page.
+        self.browser.get(self.live_server_url)
+
+        # We should see recently added datasets. Let's find ours.
+        dataset_link = self.browser.find_element_by_link_text('My dataset')
+        self.assertEqual(
+            dataset_link.get_attribute('href'),
+            self.live_server_url + dataset.get_absolute_url())
+
+        # And we click on it!
+        dataset_link.click()
+
+        WebDriverWait(self.browser, 5).until(
+            expected_conditions.presence_of_element_located(
+                (By.ID, 'table-dataset-summary')))
+
+        # We should see the page header.
+        h1 = self.browser.find_element_by_tag_name('h1')
+        self.assertEqual(h1.text, 'My dataset')
