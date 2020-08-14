@@ -1,0 +1,2 @@
+class NoSignificantDigitFound(Exception):
+    pass

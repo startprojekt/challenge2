@@ -4,34 +4,72 @@ import math
 import re
 from decimal import Decimal
 
+from django.forms import Form
 from pydash import get
 
+from benford.exceptions import NoSignificantDigitFound
 from benford.utils import calc_percentage, round_decimal
 
 
 class BenfordAnalyzer:
-    def __init__(self, occurences=None):
-        self.percentages = None
-        self.occurences = occurences or {}
-        if self.occurences:
+    def __init__(self, occurences=None, base=10, error_rows=0):
+        self.percentages = {}
+        self._occurences = occurences or {}
+        self._error_rows = error_rows
+        self._total_occurences = sum(occurences.values()) if occurences else 0
+        self._base = base
+        if self._occurences:
             self.calculate_percentages()
 
     @classmethod
-    def create_from_string(cls, payload: str, relevant_column=0):
-        return cls.create_from_csv(
-            io.StringIO(payload), relevant_column=relevant_column)
+    def create_from_form(cls, form: Form):
+        return cls.create_from_string(
+            form.cleaned_data['data_raw'],
+            relevant_column=get(form.cleaned_data, 'relevant_column', 0) or 0,
+            has_header=get(form.cleaned_data, 'has_header', False),
+        )
 
     @classmethod
-    def create_from_csv(cls, data, relevant_column=0):
-        reader = csv.reader(data)
+    def create_from_string(cls, payload: str, relevant_column=0, has_header: bool = False):
+        return cls.create_from_csv(
+            io.StringIO(payload),
+            relevant_column=relevant_column,
+            has_header=has_header)
+
+    @classmethod
+    def create_from_csv(
+            cls, data, delimiter='\t',
+            relevant_column: int = 0,
+            has_header: bool = False,
+    ):
         occurences = {}
+        reader = csv.reader(data, delimiter=delimiter)
+        row_i = 0
+        _error_rows = 0
+
+        if has_header:
+            # Skip first row (header).
+            next(reader)
+
         for row in reader:
-            significant_digit = get_first_significant_digit(row[relevant_column])
+            _invalid_row = False
+            try:
+                significant_digit = get_first_significant_digit(row[relevant_column])
+            except NoSignificantDigitFound:
+                significant_digit = None
+                _error_rows += 1
+            finally:
+                row_i += 1
+
+            if significant_digit is None:
+                continue
+
             if significant_digit not in occurences:
                 occurences[significant_digit] = 1
             else:
                 occurences[significant_digit] += 1
-        return BenfordAnalyzer(occurences)
+
+        return BenfordAnalyzer(occurences, error_rows=_error_rows)
 
     @staticmethod
     def calculate_probability(digit, base=10):
@@ -47,7 +85,23 @@ class BenfordAnalyzer:
         :return:
         """
         assert base >= 2, 'Base must be greater or equal 2'
-        return round_decimal(math.log(1 + 1/digit, base), 3)
+        return round_decimal(math.log(1 + 1 / digit, base), 3)
+
+    @property
+    def base(self):
+        return self._base
+
+    @property
+    def occurences(self):
+        return self._occurences
+
+    @property
+    def total_occurences(self):
+        return self._total_occurences
+
+    @property
+    def has_errors(self):
+        return self._error_rows > 0
 
     def calculate_percentages(self) -> None:
         self.percentages = count_occurences_with_percentage(self.occurences)
@@ -61,7 +115,7 @@ def get_first_significant_digit(value) -> int:
     match = re.search(r'[1-9]', string)
     if match and match.group():
         return int(match[0])
-    raise ValueError('No significant digit found for `{0}`.'.format(value))
+    raise NoSignificantDigitFound(value)
 
 
 def map_significant_digits(samples: iter):

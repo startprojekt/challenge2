@@ -6,6 +6,7 @@ from benford.core import (
     get_first_significant_digit, map_significant_digits, count_occurences,
     count_occurences_with_percentage, BenfordAnalyzer,
 )
+from benford.exceptions import NoSignificantDigitFound
 from benford.tests.common import RAW_DATA_SAMPLE_1, INT_LIST_SAMPLE_1
 
 
@@ -27,7 +28,7 @@ class CoreTest(TestCase):
         self.assertEqual(get_first_significant_digit(0.9), 9)
 
         # Some invalid inputs
-        with self.assertRaises(ValueError):
+        with self.assertRaises(NoSignificantDigitFound):
             get_first_significant_digit("ABC")
 
     def test_validate_input_data(self):
@@ -79,6 +80,7 @@ class CoreTest(TestCase):
 class BenfordAnalyzerTest(TestCase):
     def test_benford_analyzer(self):
         analyzer = BenfordAnalyzer(occurences={1: 10, 2: 3, 3: 5, 4: 8})
+        self.assertEqual(analyzer.base, 10)
         self.assertEqual(len(analyzer.occurences), len(analyzer.percentages))
 
         # Retrieve percentages individually
