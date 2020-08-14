@@ -89,3 +89,22 @@ class BenfordAnalyzerTest(TestCase):
 
         # Handle non-existent (not occured) digits.
         self.assertEqual(analyzer.get_percentage_of(9), Decimal('0'))
+
+    def test_benford_law(self):
+        analyzer = BenfordAnalyzer()
+
+        # We assume base=10 as default.
+        self.assertEqual(analyzer.calculate_probability(1), Decimal('0.301'))
+        self.assertEqual(analyzer.calculate_probability(2), Decimal('0.176'))
+        self.assertEqual(analyzer.calculate_probability(3), Decimal('0.125'))
+        self.assertEqual(analyzer.calculate_probability(4), Decimal('0.097'))
+        self.assertEqual(analyzer.calculate_probability(5), Decimal('0.079'))
+        self.assertEqual(analyzer.calculate_probability(6), Decimal('0.067'))
+        self.assertEqual(analyzer.calculate_probability(7), Decimal('0.058'))
+        self.assertEqual(analyzer.calculate_probability(8), Decimal('0.051'))
+        self.assertEqual(analyzer.calculate_probability(9), Decimal('0.046'))
+
+        # Some calculations with other-than-10 bases.
+        self.assertEqual(analyzer.calculate_probability(1, base=2), Decimal('1'))
+        self.assertEqual(analyzer.calculate_probability(1, base=3), Decimal('0.631'))
+        self.assertEqual(analyzer.calculate_probability(2, base=3), Decimal('0.369'))

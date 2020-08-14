@@ -1,18 +1,20 @@
 import csv
 import io
+import math
 import re
 from decimal import Decimal
 
 from pydash import get
 
-from benford.utils import calc_percentage
+from benford.utils import calc_percentage, round_decimal
 
 
 class BenfordAnalyzer:
-    def __init__(self, occurences):
+    def __init__(self, occurences=None):
         self.percentages = None
-        self.occurences = occurences
-        self.calculate_percentages()
+        self.occurences = occurences or {}
+        if self.occurences:
+            self.calculate_percentages()
 
     @classmethod
     def create_from_string(cls, payload: str, relevant_column=0):
@@ -30,6 +32,22 @@ class BenfordAnalyzer:
             else:
                 occurences[significant_digit] += 1
         return BenfordAnalyzer(occurences)
+
+    @staticmethod
+    def calculate_probability(digit, base=10):
+        """
+        Calculates probability of occurence of `digit` as first digit in a number
+        for a given base (decimal as default).
+
+        Implementation based on:
+        https://en.wikipedia.org/wiki/Benford%27s_law#Benford's_law_in_other_bases
+
+        :param digit: First significant digit to be checked.
+        :param base: Base to calculate for.
+        :return:
+        """
+        assert base >= 2, 'Base must be greater or equal 2'
+        return round_decimal(math.log(1 + 1/digit, base), 3)
 
     def calculate_percentages(self) -> None:
         self.percentages = count_occurences_with_percentage(self.occurences)
