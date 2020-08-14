@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test.testcases import TestCase
 
 from benford.core import BenfordAnalyzer
@@ -49,5 +50,41 @@ class DatasetUploadFormTest(TestCase):
         self.assertEqual(benford_analyzer.total_occurences, 19)
         self.assertFalse(benford_analyzer.has_errors)
 
-    def test_form_with_file_data(self):
-        pass
+    def test_form_with_real_world_file_data(self):
+        """
+        This is form testing with the "real world" data provided in the challenge.
+        """
+
+        with open('benford/tests/sample_data/census_2009b', 'rb') as uploaded_file:
+            payload = {
+                'relevant_column': 2,
+                'has_header': True,
+            }
+            payload_files = {
+                'data_file': SimpleUploadedFile(uploaded_file.name, uploaded_file.read()),
+            }
+        form = DatasetUploadForm(payload, payload_files)
+        self.assertListEqual(list(form.errors), [])
+        self.assertTrue(form.is_valid())
+
+        benford_analyzer = BenfordAnalyzer.create_from_form(form)
+        self.assertTrue(benford_analyzer.has_errors)
+
+        # We found 2 erroneous rows in the dataset.
+        self.assertEqual(len(benford_analyzer.error_rows), 2)
+
+        # So the total count of valid rows would be:
+        self.assertEqual(benford_analyzer.total_occurences, 19507)
+
+        self.assertDictEqual(
+            benford_analyzer.occurences, {
+                1: 5735, 2: 3544, 3: 2341, 4: 1847, 5: 1559,
+                6: 1370, 7: 1166, 8: 1042, 9: 903,
+            })
+
+        self.assertDictEqual(
+            benford_analyzer.percentages, {
+                1: Decimal('29.4'), 2: Decimal('18.2'), 3: Decimal('12.0'),
+                4: Decimal('9.5'), 5: Decimal('8.0'), 6: Decimal('7.0'),
+                7: Decimal('6.0'), 8: Decimal('5.3'), 9: Decimal('4.6'),
+            })

@@ -4,6 +4,7 @@ import math
 import re
 from decimal import Decimal
 
+from django.core.files import File
 from django.forms import Form
 from pydash import get
 
@@ -12,10 +13,10 @@ from benford.utils import calc_percentage, round_decimal
 
 
 class BenfordAnalyzer:
-    def __init__(self, occurences=None, base=10, error_rows=0):
+    def __init__(self, occurences=None, base=10, error_rows: set = None):
         self.percentages = {}
         self._occurences = occurences or {}
-        self._error_rows = error_rows
+        self._error_rows = error_rows or set()
         self._total_occurences = sum(occurences.values()) if occurences else 0
         self._base = base
         if self._occurences:
@@ -23,11 +24,15 @@ class BenfordAnalyzer:
 
     @classmethod
     def create_from_form(cls, form: Form):
-        return cls.create_from_string(
-            form.cleaned_data['data_raw'],
-            relevant_column=get(form.cleaned_data, 'relevant_column', 0) or 0,
-            has_header=get(form.cleaned_data, 'has_header', False),
-        )
+        kwargs = {
+            'relevant_column': get(form.cleaned_data, 'relevant_column', 0) or 0,
+            'has_header': get(form.cleaned_data, 'has_header', False),
+        }
+        data_file = form.cleaned_data['data_file']
+        if data_file:
+            return cls.create_from_file(data_file, **kwargs)
+        else:
+            return cls.create_from_string(form.cleaned_data['data_raw'], **kwargs)
 
     @classmethod
     def create_from_string(cls, payload: str, relevant_column=0, has_header: bool = False):
@@ -35,6 +40,14 @@ class BenfordAnalyzer:
             io.StringIO(payload),
             relevant_column=relevant_column,
             has_header=has_header)
+
+    @classmethod
+    def create_from_file(cls, data_file: File, relevant_column=0, has_header: bool = False):
+        return cls.create_from_csv(
+            io.StringIO(data_file.read().decode('utf-8')),
+            relevant_column=relevant_column,
+            has_header=has_header,
+        )
 
     @classmethod
     def create_from_csv(
@@ -45,7 +58,7 @@ class BenfordAnalyzer:
         occurences = {}
         reader = csv.reader(data, delimiter=delimiter)
         row_i = 0
-        _error_rows = 0
+        _error_rows = set()
 
         if has_header:
             # Skip first row (header).
@@ -57,7 +70,7 @@ class BenfordAnalyzer:
                 significant_digit = get_first_significant_digit(row[relevant_column])
             except NoSignificantDigitFound:
                 significant_digit = None
-                _error_rows += 1
+                _error_rows.add(row_i)
             finally:
                 row_i += 1
 
@@ -101,7 +114,11 @@ class BenfordAnalyzer:
 
     @property
     def has_errors(self):
-        return self._error_rows > 0
+        return bool(self._error_rows)
+
+    @property
+    def error_rows(self):
+        return self._error_rows
 
     def calculate_percentages(self) -> None:
         self.percentages = count_occurences_with_percentage(self.occurences)
