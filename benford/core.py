@@ -4,12 +4,13 @@ import math
 import re
 from decimal import Decimal
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.forms import Form
 from pydash import get
 
 from benford.exceptions import NoSignificantDigitFound
-from benford.models import Dataset
+from benford.models import Dataset, SignificantDigit
 from benford.utils import calc_percentage, round_decimal
 
 
@@ -131,6 +132,31 @@ class BenfordAnalyzer:
 
     def save(self):
         self.dataset.save()
+        new_digits = []
+        existing_digits = []
+
+        for digit, occurences in self.occurences.items():
+            percentage = self.get_percentage_of(digit)
+            try:
+                significant_digit = self.dataset.significant_digits.get(digit=digit)
+                significant_digit.occurences = occurences
+                significant_digit.percentage = percentage
+                existing_digits.append(significant_digit)
+            except ObjectDoesNotExist:
+                significant_digit = SignificantDigit(
+                    dataset=self.dataset,
+                    digit=digit,
+                    occurences=occurences,
+                    percentage=percentage,
+                )
+                new_digits.append(significant_digit)
+
+        if new_digits:
+            SignificantDigit.objects.bulk_create(new_digits)
+
+        if existing_digits:
+            SignificantDigit.objects.bulk_create(existing_digits, ['occurences', ])
+
         return self.dataset
 
 

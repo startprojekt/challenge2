@@ -7,6 +7,7 @@ from benford.core import (
     count_occurences_with_percentage, BenfordAnalyzer,
 )
 from benford.exceptions import NoSignificantDigitFound
+from benford.models import Dataset, SignificantDigit
 from benford.tests.common import RAW_DATA_SAMPLE_1, INT_LIST_SAMPLE_1
 
 
@@ -110,3 +111,33 @@ class BenfordAnalyzerTest(TestCase):
         self.assertEqual(analyzer.calculate_probability(1, base=2), Decimal('1'))
         self.assertEqual(analyzer.calculate_probability(1, base=3), Decimal('0.631'))
         self.assertEqual(analyzer.calculate_probability(2, base=3), Decimal('0.369'))
+
+    def test_save_models(self):
+        self.assertEqual(Dataset.objects.count(), 0)
+        self.assertEqual(SignificantDigit.objects.count(), 0)
+
+        # We build some BenfordAnalyzer instance.
+        analyzer = BenfordAnalyzer(occurences={
+            1: 5735, 2: 3544, 3: 2341, 4: 1847, 5: 1559,
+            6: 1370, 7: 1166, 8: 1042, 9: 903,
+        })
+
+        # And save it to database.
+        analyzer.save()
+
+        self.assertEqual(Dataset.objects.count(), 1)
+        self.assertEqual(SignificantDigit.objects.count(), 9)
+
+        dataset = Dataset.objects.first()
+
+        digit_1: SignificantDigit = dataset.significant_digits.get(digit=1)
+        self.assertEqual(digit_1.occurences, 5735)
+        self.assertEqual(digit_1.percentage, Decimal('29.4'))
+
+        digit_2: SignificantDigit = dataset.significant_digits.get(digit=2)
+        self.assertEqual(digit_2.occurences, 3544)
+        self.assertEqual(digit_2.percentage, Decimal('18.2'))
+
+        digit_3: SignificantDigit = dataset.significant_digits.get(digit=3)
+        self.assertEqual(digit_3.occurences, 2341)
+        self.assertEqual(digit_3.percentage, Decimal('12.0'))
