@@ -1,3 +1,5 @@
+import re
+import uuid
 from decimal import Decimal
 
 from django.test.testcases import TestCase
@@ -12,6 +14,10 @@ class DatasetTest(TestCase):
     def test_basics(self):
         dataset = Dataset.objects.create(title='Census_2009b')
         self.assertEqual(Dataset.objects.count(), 1)
+
+        # Ensure that we have a unique identifier.
+        self.assertTrue(len(dataset.slug), 10)
+        self.assertIsNotNone(re.match(r'[a-z]{10}', dataset.slug))
 
         # Ensure there can only be one significant digit entry for a given dataset.
         self.assertIn(('dataset', 'digit'), SignificantDigit._meta.unique_together)
@@ -42,3 +48,10 @@ class DatasetTest(TestCase):
 
         significant_3 = SignificantDigit.objects.get(dataset=dataset, digit=3)
         self.assertEqual(significant_3.calculate_occurence_percentage(), Decimal('14.8'))
+
+    def test_multiple_datasets(self):
+        dataset_1 = Dataset.objects.create(title='A')
+        dataset_2 = Dataset.objects.create(title='B')
+        dataset_3 = Dataset.objects.create(title='C')
+
+        # TODO make identifiers clash!

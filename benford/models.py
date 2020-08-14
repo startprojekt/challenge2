@@ -1,12 +1,15 @@
+import uuid
 from decimal import Decimal
 
 from django.db import models
 from django.db.models import Count, Sum
 
-from benford.utils import calc_percentage
+from benford.utils import calc_percentage, generate_random_identifier
 
 
 class Dataset(models.Model):
+    slug = models.CharField(
+        max_length=10, unique=True, default=generate_random_identifier)
     title = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

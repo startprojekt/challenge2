@@ -1,4 +1,6 @@
 import decimal
+import random
+import string
 from decimal import Decimal
 
 
@@ -16,3 +18,8 @@ def round_decimal(value, decimal_places=0, rounding=decimal.ROUND_HALF_UP) -> De
 
 def calc_percentage(value, total, decimal_places: int = 1) -> Decimal:
     return round_decimal(100 * value / total, decimal_places)
+
+
+def generate_random_identifier(length=10):
+    letters_and_digits = string.ascii_lowercase
+    return ''.join((random.choice(letters_and_digits) for i in range(length)))

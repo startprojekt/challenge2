@@ -9,11 +9,16 @@ from django.forms import Form
 from pydash import get
 
 from benford.exceptions import NoSignificantDigitFound
+from benford.models import Dataset
 from benford.utils import calc_percentage, round_decimal
 
 
 class BenfordAnalyzer:
-    def __init__(self, occurences=None, base=10, error_rows: set = None):
+    def __init__(
+            self, occurences=None,
+            base=10, error_rows: set = None, title: str = ''
+    ):
+        self.dataset = Dataset(title=title)
         self.percentages = {}
         self._occurences = occurences or {}
         self._error_rows = error_rows or set()
@@ -27,6 +32,7 @@ class BenfordAnalyzer:
         kwargs = {
             'relevant_column': get(form.cleaned_data, 'relevant_column', 0) or 0,
             'has_header': get(form.cleaned_data, 'has_header', False),
+            'title': form.cleaned_data['title'],
         }
         data_file = form.cleaned_data['data_file']
         if data_file:
@@ -35,26 +41,23 @@ class BenfordAnalyzer:
             return cls.create_from_string(form.cleaned_data['data_raw'], **kwargs)
 
     @classmethod
-    def create_from_string(cls, payload: str, relevant_column=0, has_header: bool = False):
+    def create_from_string(cls, payload: str, **kwargs):
         return cls.create_from_csv(
-            io.StringIO(payload),
-            relevant_column=relevant_column,
-            has_header=has_header)
+            io.StringIO(payload), **kwargs)
 
     @classmethod
-    def create_from_file(cls, data_file: File, relevant_column=0, has_header: bool = False):
+    def create_from_file(cls, data_file: File, **kwargs):
         return cls.create_from_csv(
-            io.StringIO(data_file.read().decode('utf-8')),
-            relevant_column=relevant_column,
-            has_header=has_header,
+            io.StringIO(data_file.read().decode('utf-8')), **kwargs
         )
 
     @classmethod
     def create_from_csv(
-            cls, data, delimiter='\t',
-            relevant_column: int = 0,
-            has_header: bool = False,
+            cls, data, delimiter='\t', **kwargs
     ):
+        relevant_column = get(kwargs, 'relevant_column', 0) or 0
+        has_header = get(kwargs, 'has_header', False)
+        title = get(kwargs, 'title', '')
         occurences = {}
         reader = csv.reader(data, delimiter=delimiter)
         row_i = 0
@@ -82,7 +85,7 @@ class BenfordAnalyzer:
             else:
                 occurences[significant_digit] += 1
 
-        return BenfordAnalyzer(occurences, error_rows=_error_rows)
+        return BenfordAnalyzer(occurences, error_rows=_error_rows, title=title)
 
     @staticmethod
     def calculate_probability(digit, base=10):
@@ -125,6 +128,10 @@ class BenfordAnalyzer:
 
     def get_percentage_of(self, digit: int) -> Decimal:
         return get(self.percentages, str(digit), Decimal('0'))
+
+    def save(self):
+        self.dataset.save()
+        return self.dataset
 
 
 def get_first_significant_digit(value) -> int:
