@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms.utils import ErrorList
 from django.test.testcases import TestCase
 
 from benford.core import BenfordAnalyzer
@@ -10,10 +11,13 @@ from benford.tests.common import RAW_DATA_SAMPLE_1, RAW_DATA_SAMPLE_2
 
 class DatasetUploadFormTest(TestCase):
     def test_empty_form(self):
-        form = DatasetUploadForm()
+        form = DatasetUploadForm({})
 
         # Empty form should not be valid.
         self.assertFalse(form.is_valid())
+        self.assertListEqual(
+            form.non_field_errors(),
+            ErrorList(['Please provide either file or raw data.']))
 
     def test_form_with_raw_data(self):
         payload = {

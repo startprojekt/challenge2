@@ -13,5 +13,5 @@ class DatasetUploadForm(forms.Form):
         data_file = get(self.cleaned_data, 'data_file')
         data_raw = get(self.cleaned_data, 'data_raw')
         if not (data_file or data_raw):
-            raise forms.ValidationError('Please provide either file or raw data.')
+            self.add_error(None, forms.ValidationError('Please provide either file or raw data.'))
         return super(DatasetUploadForm, self).clean()
