@@ -116,6 +116,15 @@ class BenfordAnalyzerTest(TestCase):
         chisq, p = analyzer.check_compliance_with_benford_law()
         self.assertEqual(chisq, 146.05630441745905)
 
+    def test_digits_summary(self):
+        analyzer = BenfordAnalyzer(occurences={1: 10, 2: 5, 3: 5})
+        summary = analyzer.get_summary()
+        self.assertEqual(len(summary), 9)
+        self.assertEqual(summary[0].digit, 1)
+        self.assertEqual(summary[0].occurences, 10)
+        self.assertEqual(summary[0].percentage, Decimal('50'))
+        self.assertEqual(summary[0].expected_percentage, Decimal('30.1'))
+
     def test_load_from_model(self):
         dataset = Dataset.objects.create(title='My dataset')
         SignificantDigit.objects.bulk_create([

@@ -15,12 +15,12 @@
     </tr>
     </thead>
     <tbody>
-    {% for significant_digit in significant_digits %}
+    {% for significant_digit in analyzer.get_summary %}
       <tr>
-        <th>{{ significant_digit.digit }}</th>
+        <td>{{ significant_digit.digit }}</td>
         <td>{{ significant_digit.occurences }}</td>
         <td>{{ significant_digit.percentage }}</td>
-        <td>{{ significant_digit.benford_percentage }}</td>
+        <td>{{ significant_digit.expected_percentage }}</td>
       </tr>
     {% endfor %}
     </tbody>

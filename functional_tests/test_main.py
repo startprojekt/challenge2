@@ -130,5 +130,12 @@ class MainViewTest(LiveServerTestCase):
         table_rows = tbody.find_elements_by_tag_name('tr')
         self.assertEqual(len(table_rows), 9)
 
+        tds = table_rows[0].find_elements_by_tag_name('td')
+        self.assertEqual(len(tds), 4)
+        self.assertEqual(tds[0].text, '1')
+        self.assertEqual(tds[1].text, '5735')
+        self.assertEqual(tds[2].text, '29.4')
+        self.assertEqual(tds[3].text, '30.1')
+
         # There should be a graph image on the page.
         graph_img = self.browser.find_element_by_xpath('//img[contains(@class, "graph")]')

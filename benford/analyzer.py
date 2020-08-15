@@ -182,3 +182,29 @@ class BenfordAnalyzer:
             SignificantDigit.objects.bulk_create(existing_digits, ['occurences', ])
 
         return self.dataset
+
+    def get_occurences_for_digit(self, digit) -> int:
+        return get(self.occurences, digit, 0) or 0
+
+    def get_percentage_for_digit(self, digit) -> int:
+        return get(self.percentages, digit, 0) or 0
+
+    def get_summary(self):
+        summary = []
+        for d in self.get_digits_list():
+            row = AnalyzerSummaryRow(
+                digit=d,
+                occurences=self.get_occurences_for_digit(d),
+                percentage=self.get_percentage_for_digit(d),
+                expected_percentage=self.get_expected_distribution(d),
+            )
+            summary.append(row)
+        return summary
+
+
+class AnalyzerSummaryRow:
+    def __init__(self, digit, occurences, percentage, expected_percentage):
+        self.digit = digit
+        self.occurences = occurences
+        self.percentage = percentage
+        self.expected_percentage = expected_percentage
