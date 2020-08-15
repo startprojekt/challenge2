@@ -71,6 +71,8 @@ class BenfordAnalyzerTest(TestCase):
         self.assertEqual(digit_3.occurences, 2341)
 
     def test_benford_law_compliance(self):
+        # We perform a test with an ideal set of data
+        # that is 100% compliant with Benford's Law.
         analyzer = BenfordAnalyzer(occurences={
             1: 301, 2: 176, 3: 125,
             4: 97, 5: 79, 6: 67,
@@ -90,11 +92,12 @@ class BenfordAnalyzerTest(TestCase):
         self.assertEqual(analyzer.get_observed_distribution(1), Decimal('30.1'))
         self.assertEqual(analyzer.get_expected_distribution(1), Decimal('30.1'))
 
-        chisq, p = analyzer.check_compliance_with_benford_law()
+        chisq = analyzer.get_chisq_test_statistic()
 
         # An ideal case when all values match the expected distribution
         # according to Benford's law.
         self.assertEqual(chisq, 0)
+        self.assertTrue(analyzer.is_compliant_with_benford_law)
 
     def test_benford_law_compliance_divergence(self):
         analyzer = BenfordAnalyzer(occurences={
@@ -103,8 +106,9 @@ class BenfordAnalyzerTest(TestCase):
             7: 18, 8: 13, 9: 10,
         })
 
-        chisq, p = analyzer.check_compliance_with_benford_law()
+        chisq = analyzer.get_chisq_test_statistic()
         self.assertEqual(chisq, 5.226832036302567)
+        self.assertTrue(analyzer.is_compliant_with_benford_law)
 
     def test_benford_law_compliance_divergence_2(self):
         analyzer = BenfordAnalyzer(occurences={
@@ -113,8 +117,9 @@ class BenfordAnalyzerTest(TestCase):
             7: 7, 8: 8, 9: 9,
         })
 
-        chisq, p = analyzer.check_compliance_with_benford_law()
+        chisq = analyzer.get_chisq_test_statistic()
         self.assertEqual(chisq, 146.05630441745905)
+        self.assertFalse(analyzer.is_compliant_with_benford_law)
 
     def test_digits_summary(self):
         analyzer = BenfordAnalyzer(occurences={1: 10, 2: 5, 3: 5})

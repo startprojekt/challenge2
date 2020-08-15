@@ -3,7 +3,16 @@
 
 {% block content %}
 
-  <h1>{{ title }}</h1>
+  <h1>{{ analyzer.dataset.display_title }}</h1>
+
+  <div>
+    Is this compliant with Benford's Law?
+    {{ analyzer.is_compliant_with_benford_law|yesno|upper }}.
+  </div>
+
+  <div>
+  The chi-squared test statistic = {{ analyzer.get_chisq_test_statistic }}
+  </div>
 
   <table id="table-dataset-summary">
     <thead>

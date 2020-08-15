@@ -8,7 +8,10 @@
 </head>
 
 <body>
-
+<div>
+  <a href="{% url 'benford:dashboard' %}">Home</a>
+  <a href="{% url 'benford:upload_dataset' %}">Upload new dataset</a>
+</div>
 {% block content %}{% endblock %}
 
 </body>

@@ -9,7 +9,7 @@ from django.forms import Form
 from pydash import get
 from scipy.stats import chisquare
 
-from benford.conf import DEFAULT_BASE
+from benford.conf import DEFAULT_BASE, BENFORD_LAW_COMPLIANCE_STAT_SIG
 from benford.core import (
     get_first_significant_digit, get_expected_distribution, get_expected_distribution_flat,
     count_occurences_with_percentage, get_degrees_of_freedom_for_base,
@@ -146,13 +146,17 @@ class BenfordAnalyzer:
             result[digit - 1] = percent
         return result
 
-    def check_compliance_with_benford_law(self, base=DEFAULT_BASE):
+    def get_chisq_test_statistic(self, base=DEFAULT_BASE):
         c = chisquare(
             f_obs=list(map(lambda x: float(x), self.get_observed_distribution_flat(base))),
             f_exp=list(map(lambda x: float(x), self.get_expected_distribution_flat(base))),
             ddof=get_degrees_of_freedom_for_base(base),
         )
-        return c
+        return c[0]
+
+    @property
+    def is_compliant_with_benford_law(self) -> bool:
+        return self.get_chisq_test_statistic() <= BENFORD_LAW_COMPLIANCE_STAT_SIG
 
     def get_digits_list(self):
         return range(1, self.base)

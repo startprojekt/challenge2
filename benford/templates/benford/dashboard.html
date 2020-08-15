@@ -2,8 +2,6 @@
 
 {% block content %}
 
-  <a href="{% url 'benford:upload_dataset' %}">Upload new dataset</a>
-
   <table id="table-datasets">
     {% for dataset in page_obj %}
       <tr>

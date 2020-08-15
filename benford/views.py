@@ -32,7 +32,7 @@ class DatasetUploadView(FormView):
 class DatasetDetailView(DetailView):
     template_name = 'benford/dataset/detail.html'
     model = Dataset
-    analyzer = None
+    analyzer: BenfordAnalyzer = None
 
     def get_object(self, queryset=None):
         obj = super(DatasetDetailView, self).get_object(queryset=queryset)
