@@ -34,7 +34,7 @@ class MainViewTest(LiveServerTestCase):
         self.assertEqual(resolve('/').func.__name__, DashboardView.as_view().__name__)
 
         # Table with created datasets.
-        table = self.browser.find_element_by_id('table-datasets')
+        table = self.browser.find_elements_by_css_selector('#table-datasets')
 
         # There is an upload button that redirects us to the form page.
         button = self.browser.find_element_by_link_text('Upload new dataset')
