@@ -160,9 +160,12 @@ class BenfordAnalyzer:
         return self.dataset
 
 
+re_first_sig_digit = re.compile(r'[1-9]')
+
+
 def get_first_significant_digit(value) -> int:
     string = str(value)
-    match = re.search(r'[1-9]', string)
+    match = re_first_sig_digit.search(string)
     if match and match.group():
         return int(match[0])
     raise NoSignificantDigitFound(value)
