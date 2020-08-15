@@ -4,20 +4,35 @@ import math
 import re
 from decimal import Decimal
 
+import numpy
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.forms import Form
 from pydash import get
+from scipy.stats import chisquare
 
+from benford.conf import DEFAULT_BASE
 from benford.exceptions import NoSignificantDigitFound
 from benford.models import Dataset, SignificantDigit
 from benford.utils import calc_percentage, round_decimal
+
+EXPECTED_BENFORD_LAW_DISTRIBUTION = {
+    1: Decimal('30.1'),
+    2: Decimal('17.6'),
+    3: Decimal('12.5'),
+    4: Decimal('9.7'),
+    5: Decimal('7.9'),
+    6: Decimal('6.7'),
+    7: Decimal('5.8'),
+    8: Decimal('5.1'),
+    9: Decimal('4.6'),
+}
 
 
 class BenfordAnalyzer:
     def __init__(
             self, occurences=None,
-            base=10, error_rows: set = None, title: str = ''
+            base=DEFAULT_BASE, error_rows: set = None, title: str = ''
     ):
         self.dataset = Dataset(title=title)
         self.percentages = {}
@@ -89,7 +104,7 @@ class BenfordAnalyzer:
         return BenfordAnalyzer(occurences, error_rows=_error_rows, title=title)
 
     @staticmethod
-    def calculate_probability(digit, base=10):
+    def get_expected_distribution(digit, base=DEFAULT_BASE):
         """
         Calculates probability of occurence of `digit` as first digit in a number
         for a given base (decimal as default).
@@ -102,7 +117,10 @@ class BenfordAnalyzer:
         :return:
         """
         assert base >= 2, 'Base must be greater or equal 2'
-        return round_decimal(math.log(1 + 1 / digit, base), 3)
+        return round_decimal(100 * math.log(1 + 1 / digit, base), 1)
+
+    def get_expected_distribution_flat(self, base=DEFAULT_BASE):
+        return [self.get_expected_distribution(i + 1) for i in range(base - 1)]
 
     @property
     def base(self):
@@ -127,8 +145,22 @@ class BenfordAnalyzer:
     def calculate_percentages(self) -> None:
         self.percentages = count_occurences_with_percentage(self.occurences)
 
-    def get_percentage_of(self, digit: int) -> Decimal:
+    def get_observed_distribution(self, digit: int) -> Decimal:
         return get(self.percentages, str(digit), Decimal('0'))
+
+    def get_observed_distribution_flat(self, base=DEFAULT_BASE):
+        result = numpy.zeros(base - 1)
+        for digit, percent in self.percentages.items():
+            result[digit - 1] = percent
+        return result
+
+    def check_compliance_with_benford_law(self, base=DEFAULT_BASE):
+        c = chisquare(
+            f_obs=list(map(lambda x: float(x), self.get_observed_distribution_flat(base))),
+            f_exp=list(map(lambda x: float(x), self.get_expected_distribution_flat(base))),
+            ddof=get_degrees_of_freedom_for_base(base),
+        )
+        return c
 
     def save(self):
         self.dataset.save()
@@ -136,7 +168,7 @@ class BenfordAnalyzer:
         existing_digits = []
 
         for digit, occurences in self.occurences.items():
-            percentage = self.get_percentage_of(digit)
+            percentage = self.get_observed_distribution(digit)
             try:
                 significant_digit = self.dataset.significant_digits.get(digit=digit)
                 significant_digit.occurences = occurences
@@ -190,6 +222,7 @@ def count_occurences_with_percentage(occurences: dict, decimal_places: int = 1):
     result = {}
     percent_remaining = Decimal('100')
     total_occurences = sum(occurences.values())
+    k = None
 
     for k, v in occurences.items():
         v_percent = calc_percentage(v, total_occurences, decimal_places)
@@ -197,6 +230,13 @@ def count_occurences_with_percentage(occurences: dict, decimal_places: int = 1):
             v_percent = percent_remaining
         result[k] = v_percent
         percent_remaining -= v_percent
+    if percent_remaining != 0:
+        result[k] += percent_remaining
+        percent_remaining = 0
 
     assert percent_remaining == 0, 'Sum of occurence percentages is not 100%.'
     return result
+
+
+def get_degrees_of_freedom_for_base(base):
+    return base - 1
