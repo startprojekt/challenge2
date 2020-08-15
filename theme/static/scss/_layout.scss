@@ -1,0 +1,9 @@
+#main-navbar {
+  @include media-breakpoint-up(sm) {
+    .nav-link {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+  }
+}

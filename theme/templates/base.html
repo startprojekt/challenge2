@@ -1,0 +1,32 @@
+{% load sass_tags %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% if title %}{{ title }} | {% endif %}Frank Benford's Law Project</title>
+  <meta name="description" content="A programming challenge">
+  <meta name="author" content="Marek Naskręt">
+  <link rel="stylesheet" href="{% sass_src "scss/theme.scss" %}" type="text/css">
+</head>
+
+<body>
+
+<nav id="main-navbar" class="navbar navbar-expand-md navbar-light bg-light">
+  <div class="container-fluid">
+    <div class="navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a href="{% url 'benford:dashboard' %}" class="nav-link">
+            Home</a></li>
+        <li class="nav-item">
+          <a href="{% url 'benford:upload_dataset' %}" class="nav-link">
+            Upload new dataset</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

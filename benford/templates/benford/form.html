@@ -2,7 +2,12 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-
-  {% crispy form %}
-
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <h1>Upload new dataset</h1>
+        {% crispy form %}
+      </div>
+    </div>
+  </div>
 {% endblock %}

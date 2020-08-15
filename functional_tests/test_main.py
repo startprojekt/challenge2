@@ -61,9 +61,9 @@ class MainViewTest(LiveServerTestCase):
 
         # ...then we get an error.
         WebDriverWait(self.browser, 3).until(
-            expected_conditions.text_to_be_present_in_element(
-                (By.TAG_NAME, 'li'),
-                'Please provide either file or raw data.'))
+            expected_conditions.presence_of_element_located(
+                (By.XPATH,
+                 '//li[text()[contains(.,"Please provide either file or raw data.")]]')))
 
         # So we upload our sample real-world data file.
         upload_field = self.browser.find_element_by_id('id_data_file')

@@ -1,17 +1,64 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12">
+        {% if page_obj %}
+          <table id="table-datasets" class="table">
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th>Created at</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for dataset in page_obj %}
+              <tr>
+                <td>
+                  <a href="{{ dataset.get_absolute_url }}">
+                    {{ dataset.display_title }}</a>
+                </td>
+                <td>{{ dataset.created_at }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
 
-  <table id="table-datasets">
-    {% for dataset in page_obj %}
-      <tr>
-        <td>
-          <a href="{{ dataset.get_absolute_url }}">
-            {{ dataset.display_title }}</a>
-        </td>
-        <td>{{ dataset.created_at }}</td>
-      </tr>
-    {% endfor %}
-  </table>
+          <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    Previous</a>
+                </li>
+              {% endif %}
 
+              {% for p in paginator.page_range %}
+                <li class="page-item {% ifequal page_obj.number p %}active{% endifequal %}">
+                  <a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                    Next</a></li>
+                </ul>
+              {% endif %}
+          </nav>
+        {% else %}
+          <div class="row justify-content-center">
+            <div class="col-12 col-md-6 text-center py-5">
+              There are currently no datasets in the database.
+              <div class="p-3">
+                <a href="{% url 'benford:upload_dataset' %}"
+                   class="btn btn-primary btn-lg">
+                  Go and create one!</a></div>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
 {% endblock %}

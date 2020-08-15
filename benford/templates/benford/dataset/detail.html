@@ -2,39 +2,61 @@
 {% load benford_tags %}
 
 {% block content %}
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-auto">
+        <a href="{% url 'benford:dashboard' %}" class="text-secondary">
+          <svg width="1.8em" height="1.8em" viewBox="0 0 16 16" class="bi bi-arrow-left-square-fill" fill="currentColor"
+               xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd"
+                  d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.354 10.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L6.207 7.5H11a.5.5 0 0 1 0 1H6.207l2.147 2.146z"/>
+          </svg>
+        </a>
+      </div>
+      <div class="col"><h1>{{ analyzer.dataset.display_title }}</h1></div>
+    </div>
 
-  <h1>{{ analyzer.dataset.display_title }}</h1>
+    <div class="row mt-3">
+      <div class="col-12 col-md-6">
+        <div>
+          {% with is_compliant=analyzer.is_compliant_with_benford_law %}
+            Is this dataset compliant with Benford's Law?
+            <div class="display-6">
+              <div class="badge {% if is_compliant %}bg-success{% else %}bg-danger{% endif %}">
+                {{ is_compliant|yesno|upper }}</div>
+            </div>
+          {% endwith %}
+        </div>
 
-  <div>
-    Is this compliant with Benford's Law?
-    {{ analyzer.is_compliant_with_benford_law|yesno|upper }}.
+        <table id="table-dataset-summary" class="table my-3">
+          <thead>
+          <tr>
+            <th>Digit</th>
+            <th>Occurences</th>
+            <th>Percent</th>
+            <th>Expected</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for significant_digit in analyzer.get_summary %}
+            <tr>
+              <td>{{ significant_digit.digit }}</td>
+              <td>{{ significant_digit.occurences }}</td>
+              <td>{{ significant_digit.percentage }}</td>
+              <td>{{ significant_digit.expected_percentage }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+
+        {#        <div>#}
+        {#          The chi-squared test statistic = {{ analyzer.get_chisq_test_statistic }}#}
+        {#        </div>#}
+      </div>
+
+      <div class="col-12 col-md-6 col-graph">
+        {% graph analyzer %}
+      </div>
+    </div>
   </div>
-
-  <div>
-  The chi-squared test statistic = {{ analyzer.get_chisq_test_statistic }}
-  </div>
-
-  <table id="table-dataset-summary">
-    <thead>
-    <tr>
-      <th>Digit</th>
-      <th>Occurences</th>
-      <th>Percent</th>
-      <th>Expected</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for significant_digit in analyzer.get_summary %}
-      <tr>
-        <td>{{ significant_digit.digit }}</td>
-        <td>{{ significant_digit.occurences }}</td>
-        <td>{{ significant_digit.percentage }}</td>
-        <td>{{ significant_digit.expected_percentage }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-
-  {% graph analyzer %}
-
 {% endblock %}
