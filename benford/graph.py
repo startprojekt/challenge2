@@ -2,9 +2,7 @@ import base64
 import io
 import urllib
 
-import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import markers
 
 from benford.core import get_expected_distribution_flat
 from benford.models import Dataset
@@ -13,8 +11,8 @@ from benford.models import Dataset
 def create_graph_buffer(dataset: Dataset):
     plt.plot(range(1, 10), get_expected_distribution_flat(),
              color='#736B92', marker='.', linestyle='None')
-    digits = dataset.significant_digits.values_list('digit', flat=True)
-    percentages = dataset.significant_digits.values_list('percentage', flat=True)
+    digits = dataset.significant_digits.values_list('digit', flat=True).order_by('digit')
+    percentages = dataset.significant_digits.values_list('percentage', flat=True).order_by('digit')
     plt.bar(digits, percentages, color='#7C90DB')
     fig = plt.gcf()
     buffer = io.BytesIO()
