@@ -129,3 +129,6 @@ class MainViewTest(LiveServerTestCase):
         tbody = summary_table.find_element_by_tag_name('tbody')
         table_rows = tbody.find_elements_by_tag_name('tr')
         self.assertEqual(len(table_rows), 9)
+
+        # There should be a graph image on the page.
+        graph_img = self.browser.find_element_by_xpath('//img[contains(@class, "graph")]')

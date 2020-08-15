@@ -105,22 +105,11 @@ class BenfordAnalyzer:
 
     @staticmethod
     def get_expected_distribution(digit, base=DEFAULT_BASE):
-        """
-        Calculates probability of occurence of `digit` as first digit in a number
-        for a given base (decimal as default).
+        return get_expected_distribution(digit, base)
 
-        Implementation based on:
-        https://en.wikipedia.org/wiki/Benford%27s_law#Benford's_law_in_other_bases
-
-        :param digit: First significant digit to be checked.
-        :param base: Base to calculate for.
-        :return:
-        """
-        assert base >= 2, 'Base must be greater or equal 2'
-        return round_decimal(100 * math.log(1 + 1 / digit, base), 1)
-
-    def get_expected_distribution_flat(self, base=DEFAULT_BASE):
-        return [self.get_expected_distribution(i + 1) for i in range(base - 1)]
+    @staticmethod
+    def get_expected_distribution_flat(base=DEFAULT_BASE):
+        return get_expected_distribution_flat(base)
 
     @property
     def base(self):
@@ -190,6 +179,26 @@ class BenfordAnalyzer:
             SignificantDigit.objects.bulk_create(existing_digits, ['occurences', ])
 
         return self.dataset
+
+
+def get_expected_distribution_flat(base=DEFAULT_BASE):
+    return [get_expected_distribution(i + 1) for i in range(base - 1)]
+
+
+def get_expected_distribution(digit, base=DEFAULT_BASE):
+    """
+    Calculates probability of occurence of `digit` as first digit in a number
+    for a given base (decimal as default).
+
+    Implementation based on:
+    https://en.wikipedia.org/wiki/Benford%27s_law#Benford's_law_in_other_bases
+
+    :param digit: First significant digit to be checked.
+    :param base: Base to calculate for.
+    :return:
+    """
+    assert base >= 2, 'Base must be greater or equal 2'
+    return round_decimal(100 * math.log(1 + 1 / digit, base), 1)
 
 
 re_first_sig_digit = re.compile(r'[1-9]')
