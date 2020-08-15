@@ -10,9 +10,9 @@ class TemplateTagsTest(TestCase):
 
     def test_matplotlib_graph(self):
         analyzer = BenfordAnalyzer(occurences={1: 10, 2: 5, 3: 3})
-        dataset = analyzer.save()
-        context = Context({'dataset': dataset})
-        template = Template('{% load benford_tags %}{% graph dataset %}')
+        analyzer.save()
+        context = Context({'analyzer': analyzer})
+        template = Template('{% load benford_tags %}{% graph analyzer %}')
         html = template.render(context)
 
         # We should get an image.

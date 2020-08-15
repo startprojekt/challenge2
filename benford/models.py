@@ -23,6 +23,9 @@ class Dataset(models.Model):
     def get_absolute_url(self):
         return reverse('benford:dataset_detail', kwargs={'slug': self.slug})
 
+    def get_occurences_summary(self):
+        return dict((x.digit, x.occurences) for x in self.significant_digits.all())
+
     class Meta:
         ordering = ['-created_at', ]
 
@@ -32,7 +35,6 @@ class SignificantDigit(models.Model):
         'Dataset', on_delete=models.CASCADE, related_name='significant_digits')
     digit = models.PositiveSmallIntegerField()
     occurences = models.PositiveIntegerField()
-    percentage = models.DecimalField(decimal_places=1, max_digits=4)
 
     def calculate_occurence_percentage(self):
         return calc_percentage(self.occurences, self.dataset.count_records())

@@ -32,10 +32,17 @@ class DatasetUploadView(FormView):
 class DatasetDetailView(DetailView):
     template_name = 'benford/dataset/detail.html'
     model = Dataset
+    analyzer = None
+
+    def get_object(self, queryset=None):
+        obj = super(DatasetDetailView, self).get_object(queryset=queryset)
+        self.analyzer = BenfordAnalyzer.create_from_model(obj)
+        return obj
 
     def get_context_data(self, **kwargs):
         self.object: Dataset
         ctx = super(DatasetDetailView, self).get_context_data(**kwargs)
         ctx['title'] = self.object.title
         ctx['significant_digits'] = self.object.significant_digits.all().order_by('digit')
+        ctx['analyzer'] = self.analyzer
         return ctx

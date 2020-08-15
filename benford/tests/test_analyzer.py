@@ -63,15 +63,12 @@ class BenfordAnalyzerTest(TestCase):
 
         digit_1: SignificantDigit = dataset.significant_digits.get(digit=1)
         self.assertEqual(digit_1.occurences, 5735)
-        self.assertEqual(digit_1.percentage, Decimal('29.4'))
 
         digit_2: SignificantDigit = dataset.significant_digits.get(digit=2)
         self.assertEqual(digit_2.occurences, 3544)
-        self.assertEqual(digit_2.percentage, Decimal('18.2'))
 
         digit_3: SignificantDigit = dataset.significant_digits.get(digit=3)
         self.assertEqual(digit_3.occurences, 2341)
-        self.assertEqual(digit_3.percentage, Decimal('12.0'))
 
     def test_benford_law_compliance(self):
         analyzer = BenfordAnalyzer(occurences={
@@ -118,3 +115,18 @@ class BenfordAnalyzerTest(TestCase):
 
         chisq, p = analyzer.check_compliance_with_benford_law()
         self.assertEqual(chisq, 146.05630441745905)
+
+    def test_load_from_model(self):
+        dataset = Dataset.objects.create(title='My dataset')
+        SignificantDigit.objects.bulk_create([
+            SignificantDigit(
+                dataset=dataset, digit=1, occurences=30),
+            SignificantDigit(
+                dataset=dataset, digit=2, occurences=20),
+            SignificantDigit(
+                dataset=dataset, digit=3, occurences=10),
+        ])
+
+        analyzer = BenfordAnalyzer.create_from_model(dataset)
+        self.assertEqual(analyzer.dataset.pk, dataset.pk)
+        self.assertEqual(analyzer.title, 'My dataset')

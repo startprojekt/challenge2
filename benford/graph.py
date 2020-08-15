@@ -4,11 +4,13 @@ import urllib
 
 import matplotlib.pyplot as plt
 
+from benford.analyzer import BenfordAnalyzer
 from benford.core import get_expected_distribution_flat
-from benford.models import Dataset
 
 
-def create_graph_buffer(dataset: Dataset):
+def create_graph_buffer(analyzer: BenfordAnalyzer):
+    assert isinstance(analyzer, BenfordAnalyzer)
+    dataset = analyzer.dataset
     expected_distribution = get_expected_distribution_flat()
     x_range = range(1, dataset.base)
     plt.plot(
@@ -17,10 +19,10 @@ def create_graph_buffer(dataset: Dataset):
     plt.errorbar(
         x_range, expected_distribution,
         yerr=2, linestyle='None', color='black')
-    digits = dataset.significant_digits.values_list('digit', flat=True).order_by('digit')
+    digits = x_range
 
     # Observed values.
-    percentages = dataset.significant_digits.values_list('percentage', flat=True).order_by('digit')
+    percentages = analyzer.get_observed_distribution_flat()
     plt.bar(digits, percentages, color='#7C90DB')
 
     fig = plt.gcf()
@@ -37,5 +39,5 @@ def get_graph_as_base64(buffer):
     return f'data:image/png;base64,{base64_string}'
 
 
-def get_graph_img_src(dataset: Dataset):
-    return get_graph_as_base64(create_graph_buffer(dataset=dataset))
+def get_graph_img_src(analyzer: BenfordAnalyzer):
+    return get_graph_as_base64(create_graph_buffer(analyzer=analyzer))

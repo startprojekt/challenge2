@@ -21,16 +21,26 @@ from benford.models import Dataset, SignificantDigit
 class BenfordAnalyzer:
     def __init__(
             self, occurences=None,
-            base=DEFAULT_BASE, error_rows: set = None, title: str = ''
+            base=DEFAULT_BASE,
+            error_rows: set = None,
+            dataset: Dataset = None,
+            title: str = ''
     ):
-        self.dataset = Dataset(title=title)
+        self.dataset = dataset or Dataset(title=title)
         self.percentages = {}
-        self._occurences = occurences or {}
+        if dataset is not None:
+            self._occurences = dataset.get_occurences_summary()
+        else:
+            self._occurences = occurences or {}
         self._error_rows = error_rows or set()
         self._total_occurences = sum(occurences.values()) if occurences else 0
         self._base = base
         if self._occurences:
             self.calculate_percentages()
+
+    @classmethod
+    def create_from_model(cls, dataset: Dataset):
+        return BenfordAnalyzer(dataset=dataset)
 
     @classmethod
     def create_from_form(cls, form: Form):
@@ -105,6 +115,10 @@ class BenfordAnalyzer:
         return self._base
 
     @property
+    def title(self):
+        return self.dataset.title
+
+    @property
     def occurences(self):
         return self._occurences
 
@@ -140,24 +154,24 @@ class BenfordAnalyzer:
         )
         return c
 
+    def get_digits_list(self):
+        return range(1, self.base)
+
     def save(self):
         self.dataset.save()
         new_digits = []
         existing_digits = []
 
         for digit, occurences in self.occurences.items():
-            percentage = self.get_observed_distribution(digit)
             try:
                 significant_digit = self.dataset.significant_digits.get(digit=digit)
                 significant_digit.occurences = occurences
-                significant_digit.percentage = percentage
                 existing_digits.append(significant_digit)
             except ObjectDoesNotExist:
                 significant_digit = SignificantDigit(
                     dataset=self.dataset,
                     digit=digit,
                     occurences=occurences,
-                    percentage=percentage,
                 )
                 new_digits.append(significant_digit)
 
