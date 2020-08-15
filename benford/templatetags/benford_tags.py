@@ -1,6 +1,5 @@
 from django import template
 
-from benford.core import BenfordAnalyzer
 from benford.graph import get_graph_img_src
 from benford.models import Dataset
 

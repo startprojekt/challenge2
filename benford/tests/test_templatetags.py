@@ -1,7 +1,7 @@
 from django.template import Context, Template
 from django.test import TestCase
 
-from benford.core import BenfordAnalyzer
+from benford.analyzer import BenfordAnalyzer
 
 
 class TemplateTagsTest(TestCase):
@@ -9,9 +9,7 @@ class TemplateTagsTest(TestCase):
         pass
 
     def test_matplotlib_graph(self):
-        analyzer = BenfordAnalyzer(occurences={
-            1: 10, 2: 5, 3: 3,
-        })
+        analyzer = BenfordAnalyzer(occurences={1: 10, 2: 5, 3: 3})
         dataset = analyzer.save()
         context = Context({'dataset': dataset})
         template = Template('{% load benford_tags %}{% graph dataset %}')

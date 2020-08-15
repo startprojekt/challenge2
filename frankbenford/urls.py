@@ -16,8 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 
-from benford.views import DashboardView
-
 urlpatterns = [
     re_path(r'^', include('benford.urls', namespace='benford')),
     path('admin/', admin.site.urls),

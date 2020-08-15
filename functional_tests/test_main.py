@@ -10,7 +10,7 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
-from benford.core import BenfordAnalyzer
+from benford.analyzer import BenfordAnalyzer
 from benford.models import Dataset
 from benford.views import DashboardView, DatasetUploadView
 

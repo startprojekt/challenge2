@@ -1,10 +1,8 @@
-import uuid
-from decimal import Decimal
-
 from django.db import models
-from django.db.models import Count, Sum
+from django.db.models import Sum
 from django.urls import reverse
 
+from benford.core import get_expected_distribution
 from benford.utils import calc_percentage, generate_random_identifier
 
 
@@ -13,6 +11,7 @@ class Dataset(models.Model):
         max_length=10, unique=True, default=generate_random_identifier)
     title = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    base = models.PositiveSmallIntegerField(default=10)
 
     def count_records(self) -> int:
         data = self.significant_digits.aggregate(Sum('occurences'))
@@ -37,6 +36,9 @@ class SignificantDigit(models.Model):
 
     def calculate_occurence_percentage(self):
         return calc_percentage(self.occurences, self.dataset.count_records())
+
+    def benford_percentage(self):
+        return get_expected_distribution(self.digit, self.dataset.base)
 
     class Meta:
         unique_together = [

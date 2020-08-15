@@ -2,9 +2,10 @@ from decimal import Decimal
 
 from django.test.testcases import TestCase
 
+from benford.analyzer import BenfordAnalyzer
 from benford.core import (
     get_first_significant_digit, map_significant_digits, count_occurences,
-    count_occurences_with_percentage, BenfordAnalyzer, EXPECTED_BENFORD_LAW_DISTRIBUTION,
+    count_occurences_with_percentage, EXPECTED_BENFORD_LAW_DISTRIBUTION,
 )
 from benford.exceptions import NoSignificantDigitFound
 from benford.models import Dataset, SignificantDigit

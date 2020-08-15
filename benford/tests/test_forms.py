@@ -4,7 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms.utils import ErrorList
 from django.test.testcases import TestCase
 
-from benford.core import BenfordAnalyzer
+from benford.analyzer import BenfordAnalyzer
 from benford.forms import DatasetUploadForm
 from benford.tests.common import RAW_DATA_SAMPLE_1, RAW_DATA_SAMPLE_2
 

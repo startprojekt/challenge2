@@ -1,5 +1,4 @@
 import re
-import uuid
 from decimal import Decimal
 
 from django.test.testcases import TestCase
