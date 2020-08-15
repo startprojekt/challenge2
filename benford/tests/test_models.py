@@ -44,9 +44,6 @@ class DatasetTest(TestCase):
 
         self.assertEqual(SignificantDigit.objects.count(), 9)
 
-        # Count all records.
-        self.assertEqual(dataset.count_records(), 540)
-
     def test_multiple_datasets(self):
         dataset_1 = Dataset.objects.create(title='A')
         dataset_2 = Dataset.objects.create(title='B')

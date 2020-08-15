@@ -13,10 +13,6 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     base = models.PositiveSmallIntegerField(default=10)
 
-    def count_records(self) -> int:
-        data = self.significant_digits.aggregate(Sum('occurences'))
-        return data['occurences__sum']
-
     def display_title(self):
         return self.title or 'Untitled dataset'
 
