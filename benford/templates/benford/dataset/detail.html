@@ -7,9 +7,10 @@
   <table id="table-dataset-summary">
     <thead>
     <tr>
-      <th></th>
-      <th></th>
-      <th></th>
+      <th>Digit</th>
+      <th>Occurences</th>
+      <th>Percent</th>
+      <th>Expected</th>
     </tr>
     </thead>
     <tbody>
@@ -18,6 +19,7 @@
         <th>{{ significant_digit.digit }}</th>
         <td>{{ significant_digit.occurences }}</td>
         <td>{{ significant_digit.percentage }}</td>
+        <td>{{ significant_digit.benford_percentage }}</td>
       </tr>
     {% endfor %}
     </tbody>

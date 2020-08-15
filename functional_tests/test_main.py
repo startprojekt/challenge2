@@ -112,13 +112,20 @@ class MainViewTest(LiveServerTestCase):
         h1 = self.browser.find_element_by_tag_name('h1')
         self.assertEqual(h1.text, 'My dataset')
 
-        # Expect summary table
+        # Expect summary table...
         summary_table = self.browser.find_element_by_id('table-dataset-summary')
 
+        # ...with a header.
         thead = summary_table.find_element_by_tag_name('thead')
         thead_ths = thead.find_elements_by_css_selector('th')
-        self.assertEqual(len(thead_ths), 3)
+        self.assertEqual(len(thead_ths), 4)
+        self.assertEqual(thead_ths[0].text, 'Digit')
+        self.assertEqual(thead_ths[1].text, 'Occurences')
+        self.assertEqual(thead_ths[2].text, 'Percent')
+        self.assertEqual(thead_ths[3].text, 'Expected')
 
+        # Since we have all 9 digits in our dataset, we expect 9 rows
+        # in the table body.
         tbody = summary_table.find_element_by_tag_name('tbody')
         table_rows = tbody.find_elements_by_tag_name('tr')
         self.assertEqual(len(table_rows), 9)
