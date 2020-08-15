@@ -9,11 +9,20 @@ from benford.models import Dataset
 
 
 def create_graph_buffer(dataset: Dataset):
-    plt.plot(range(1, 10), get_expected_distribution_flat(),
-             color='#736B92', marker='.', linestyle='None')
+    expected_distribution = get_expected_distribution_flat()
+    x_range = range(1, dataset.base)
+    plt.plot(
+        x_range, expected_distribution,
+        color='black', marker='o', linestyle='None')
+    plt.errorbar(
+        x_range, expected_distribution,
+        yerr=2, linestyle='None', color='black')
     digits = dataset.significant_digits.values_list('digit', flat=True).order_by('digit')
+
+    # Observed values.
     percentages = dataset.significant_digits.values_list('percentage', flat=True).order_by('digit')
     plt.bar(digits, percentages, color='#7C90DB')
+
     fig = plt.gcf()
     buffer = io.BytesIO()
     fig.savefig(buffer, format='png')
