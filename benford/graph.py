@@ -3,6 +3,7 @@ import io
 import urllib
 
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import xticks
 
 from benford.analyzer import BenfordAnalyzer
 from benford.core import get_expected_distribution_flat
@@ -13,6 +14,7 @@ def create_graph_buffer(analyzer: BenfordAnalyzer):
     dataset = analyzer.dataset
     expected_distribution = get_expected_distribution_flat()
     x_range = range(1, dataset.base)
+    xticks(x_range)
     plt.plot(
         x_range, expected_distribution,
         color='black', marker='o', linestyle='None')
