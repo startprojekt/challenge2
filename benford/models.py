@@ -43,8 +43,12 @@ class DatasetRow(models.Model):
         verbose_name='line number',
         db_index=True)
     data = models.JSONField(default=list)
+    has_error = models.BooleanField(blank=True, default=False)
 
     class Meta:
+        index_together = [
+            ('dataset', 'has_error'),
+        ]
         unique_together = [
             ('dataset', 'line'),
         ]

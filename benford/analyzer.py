@@ -19,7 +19,7 @@ from benford.core import (
     count_occurences_with_percentage, get_degrees_of_freedom_for_base,
 )
 from benford.exceptions import NoSignificantDigitFound
-from benford.models import Dataset, SignificantDigit
+from benford.models import Dataset, SignificantDigit, DatasetRow
 
 
 class BenfordAnalyzer:
@@ -28,17 +28,24 @@ class BenfordAnalyzer:
             base=DEFAULT_BASE,
             error_rows: set = None,
             dataset: Dataset = None,
-            title: str = ''
+            title: str = '',
+            input_data=None,
+            delimiter=DEFAULT_DELIMITER,
     ):
         self.dataset = dataset or Dataset(title=title)
         self.percentages = {}
+        self.input_data = input_data
+        self.delimiter = delimiter
+
         if dataset is not None:
             self._occurences = dataset.get_occurences_summary()
         else:
             self._occurences = occurences or {}
+
         self._error_rows = error_rows or set()
         self._total_occurences = sum(occurences.values()) if occurences else 0
         self._base = base
+
         if self._occurences:
             self.calculate_percentages()
 
@@ -71,7 +78,7 @@ class BenfordAnalyzer:
     @classmethod
     def create_from_csv(
             cls,
-            data: io.StringIO,
+            input_data: io.StringIO,
             delimiter='\t',
             relevant_column: int = None,
             has_header: bool = False,
@@ -81,13 +88,13 @@ class BenfordAnalyzer:
             f"The `delimiter` argument must be one of {ALLOWED_DELIMITERS}. " \
             f"Got `{delimiter}` instead."
 
-        first_line: str = data.readline()
+        first_line: str = input_data.readline()
         delimiter = delimiter or auto_detect_delimiter(first_line) or DEFAULT_DELIMITER
         relevant_column = relevant_column or find_relevant_column(first_line)
 
         occurences = {}
-        data.seek(0)
-        reader = csv.reader(data, delimiter=delimiter)
+        input_data.seek(0)
+        reader = csv.reader(input_data, delimiter=delimiter)
         row_i = 0
         _error_rows = set()
 
@@ -113,7 +120,10 @@ class BenfordAnalyzer:
             else:
                 occurences[significant_digit] += 1
 
-        return BenfordAnalyzer(occurences, error_rows=_error_rows, title=title)
+        return BenfordAnalyzer(
+            occurences,
+            error_rows=_error_rows, title=title,
+            input_data=input_data, delimiter=delimiter)
 
     @staticmethod
     def get_expected_distribution(digit, base=DEFAULT_BASE):
@@ -181,6 +191,7 @@ class BenfordAnalyzer:
     def save(self) -> Dataset:
         with transaction.atomic():
             dataset = self._perform_save()
+            self._save_data_rows()
         return dataset
 
     def _perform_save(self) -> Dataset:
@@ -207,6 +218,32 @@ class BenfordAnalyzer:
             SignificantDigit.objects.bulk_create(existing_digits, ['occurences', ])
 
         return self.dataset
+
+    def _save_data_rows(self):
+        """
+        Save user data input to browse later.
+        """
+        if self.input_data is None:
+            return
+        self.input_data.seek(0)
+        line = 0
+        rows = []
+        reader = csv.reader(self.input_data, delimiter=self.delimiter)
+
+        while True:
+            try:
+                next(reader)
+            except StopIteration:
+                break
+            rows.append(DatasetRow(
+                dataset=self.dataset,
+                line=line,
+                has_error=line in self.error_rows
+            ))
+            line += 1
+
+        # Bulk save rows.
+        DatasetRow.objects.bulk_create(rows)
 
     def get_occurences_for_digit(self, digit) -> int:
         return get(self.occurences, digit, 0) or 0

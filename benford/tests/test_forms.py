@@ -6,6 +6,7 @@ from django.test.testcases import TestCase
 
 from benford.analyzer import BenfordAnalyzer
 from benford.forms import DatasetUploadForm
+from benford.models import DatasetRow, Dataset
 from benford.tests.common import RAW_DATA_SAMPLE_1, RAW_DATA_SAMPLE_2
 
 
@@ -54,11 +55,7 @@ class DatasetUploadFormTest(TestCase):
         self.assertEqual(benford_analyzer.total_occurences, 19)
         self.assertFalse(benford_analyzer.has_errors)
 
-    def test_form_with_real_world_file_data(self):
-        """
-        This is form testing with the "real world" data provided in the challenge.
-        """
-
+    def _create_census_2009b_form(self):
         with open('benford/tests/sample_data/census_2009b', 'rb') as uploaded_file:
             payload = {
                 # We don't need to pass the 'relevant_column' parameter
@@ -70,8 +67,16 @@ class DatasetUploadFormTest(TestCase):
                 'data_file': SimpleUploadedFile(uploaded_file.name, uploaded_file.read()),
             }
         form = DatasetUploadForm(payload, payload_files)
-        self.assertListEqual(list(form.errors), [])
+        return form
+
+    def test_form_with_real_world_file_data(self):
+        """
+        This is form testing with the "real world" data provided in the challenge.
+        """
+
+        form = self._create_census_2009b_form()
         self.assertTrue(form.is_valid())
+        self.assertListEqual(list(form.errors), [])
 
         benford_analyzer = BenfordAnalyzer.create_from_form(form)
         self.assertTrue(benford_analyzer.has_errors)
@@ -94,3 +99,25 @@ class DatasetUploadFormTest(TestCase):
                 4: Decimal('9.5'), 5: Decimal('8.0'), 6: Decimal('7.0'),
                 7: Decimal('6.0'), 8: Decimal('5.3'), 9: Decimal('4.6'),
             })
+
+    def test_dataset_rows(self):
+        form = self._create_census_2009b_form()
+        self.assertTrue(form.is_valid())
+
+        benford_analyzer = BenfordAnalyzer.create_from_form(form)
+        benford_analyzer.save()
+
+        self.assertEqual(Dataset.objects.count(), 1)
+
+        # Let's test saved rows.
+        self.assertEqual(
+            DatasetRow.objects.filter(
+                dataset=benford_analyzer.dataset
+            ).count(), 19510)
+
+        # We should be able to retrieve erroneous rows.
+        self.assertEqual(
+            DatasetRow.objects.filter(
+                dataset=benford_analyzer.dataset,
+                has_error=True
+            ).count(), 2)
