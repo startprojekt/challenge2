@@ -72,7 +72,7 @@
         <div class="col">
           <table class="table">
             {% for row in dataset_rows %}
-              <tr{% if row.has_error %} class="text-danger"{% endif %}>
+              <tr class="text-danger">
                 <td>{{ row.line }}</td>
                 {% for col in row.data %}
                   <td>{{ col }}</td>
