@@ -1,8 +1,10 @@
 import re
 
+from django.db import IntegrityError
+from django.test import TransactionTestCase
 from django.test.testcases import TestCase
 
-from benford.models import Dataset, SignificantDigit
+from benford.models import Dataset, SignificantDigit, DatasetRow
 
 
 class DatasetTest(TestCase):
@@ -49,3 +51,29 @@ class DatasetTest(TestCase):
         dataset_2 = Dataset.objects.create(title='B')
         dataset_3 = Dataset.objects.create(title='C')
         self.assertEqual(Dataset.objects.count(), 3)
+
+
+class DatasetRowTest(TransactionTestCase):
+    def test_model(self):
+        row = DatasetRow()
+        self.assertListEqual(row.data, [])
+
+        with self.assertRaises(IntegrityError):
+            row.save()
+
+        row.line = 0
+
+        with self.assertRaises(IntegrityError):
+            # Still an error with a null `dataset` reference.
+            row.save()
+
+        self.assertEqual(row.line, 0)
+
+        # Let's assign a dataset to the row.
+        dataset = Dataset.objects.create()
+        row.dataset = dataset
+
+        # Now it should run clean.
+        row.save()
+
+        self.assertEqual(DatasetRow.objects.count(), 1)

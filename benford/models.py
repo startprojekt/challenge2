@@ -34,3 +34,17 @@ class SignificantDigit(models.Model):
         unique_together = [
             ('dataset', 'digit'),
         ]
+
+
+class DatasetRow(models.Model):
+    dataset = models.ForeignKey(
+        'Dataset', related_name='+', on_delete=models.CASCADE)
+    line = models.PositiveIntegerField(
+        verbose_name='line number',
+        db_index=True)
+    data = models.JSONField(default=list)
+
+    class Meta:
+        unique_together = [
+            ('dataset', 'line'),
+        ]
