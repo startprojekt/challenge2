@@ -84,6 +84,9 @@ class MainViewTest(LiveServerTestCase):
             message="Page title didn't change as expected. "
                     "It should contain 'My first dataset'.")
 
+        h2 = self.browser.find_element_by_tag_name('h2')
+        self.assertEqual(h2.text, 'Erroneous rows')
+
     def test_dataset_detail_page(self):
         # We create some dataset.
         analyzer = BenfordAnalyzer(occurences={

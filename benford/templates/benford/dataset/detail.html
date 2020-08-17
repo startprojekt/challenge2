@@ -58,5 +58,30 @@
         {% graph analyzer %}
       </div>
     </div>
+
   </div>
+
+  {% if dataset_rows.exists %}
+    <div class="container-fluid">
+      <h2>Erroneous rows</h2>
+
+      <p>There were some rows in the dataset that couldn't be processed
+        correctly. They are not included in the above analysis.</p>
+
+      <div class="row">
+        <div class="col">
+          <table class="table">
+            {% for row in dataset_rows %}
+              <tr{% if row.has_error %} class="text-danger"{% endif %}>
+                <td>{{ row.line }}</td>
+                {% for col in row.data %}
+                  <td>{{ col }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}

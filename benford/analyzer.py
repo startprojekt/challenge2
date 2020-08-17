@@ -232,14 +232,13 @@ class BenfordAnalyzer:
 
         while True:
             try:
-                next(reader)
+                row = next(reader)
             except StopIteration:
                 break
             rows.append(DatasetRow(
                 dataset=self.dataset,
-                line=line,
-                has_error=line in self.error_rows
-            ))
+                line=line, data=row,
+                has_error=line in self.error_rows))
             line += 1
 
         # Bulk save rows.

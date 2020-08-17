@@ -3,7 +3,7 @@ from django.views.generic import FormView, DetailView, ListView
 
 from benford.analyzer import BenfordAnalyzer
 from benford.forms import DatasetUploadForm
-from benford.models import Dataset
+from benford.models import Dataset, DatasetRow
 
 
 class DashboardView(ListView):
@@ -45,4 +45,10 @@ class DatasetDetailView(DetailView):
         ctx['title'] = self.object.title
         ctx['significant_digits'] = self.object.significant_digits.all().order_by('digit')
         ctx['analyzer'] = self.analyzer
+        ctx['dataset_rows'] = self.get_erroneous_dataset_rows()
         return ctx
+
+    def get_erroneous_dataset_rows(self):
+        return DatasetRow.objects.filter(
+            dataset=self.analyzer.dataset, has_error=True,
+        ).order_by('line')
