@@ -237,16 +237,25 @@ def auto_detect_delimiter(row) -> str:
     return DEFAULT_DELIMITER
 
 
-def find_relevant_column(row_str: str, delimiter: str = None) -> int:
+def find_relevant_column(first_line: str, second_line: str = '', delimiter: str = None) -> int:
     """
-    Finds a first column that contains a number.
+    Finds a first column that contains a number. If it doesn't find it in
+    the first line, it assumes it must be a header and analyzes the second line.
 
-    :param row_str:
+    :param first_line:
+    :param second_line:
     :param delimiter:
     :return:
     """
-    delimiter = delimiter or auto_detect_delimiter(row_str) or DEFAULT_DELIMITER
-    reader = csv.reader(io.StringIO(row_str), delimiter=delimiter)
+    return (
+            _find_relevant_column_on_line(first_line)
+            or _find_relevant_column_on_line(second_line)
+            or DEFAULT_RELEVANT_COLUMN)
+
+
+def _find_relevant_column_on_line(line: str, delimiter: str = None) -> int:
+    delimiter = delimiter or auto_detect_delimiter(line) or DEFAULT_DELIMITER
+    reader = csv.reader(io.StringIO(line), delimiter=delimiter)
 
     try:
         row = next(reader)
@@ -264,4 +273,4 @@ def find_relevant_column(row_str: str, delimiter: str = None) -> int:
             pass
         column_no += 1
 
-    return column_no if first_number is not None else DEFAULT_RELEVANT_COLUMN
+    return column_no if first_number is not None else None

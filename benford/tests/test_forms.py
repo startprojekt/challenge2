@@ -61,7 +61,9 @@ class DatasetUploadFormTest(TestCase):
 
         with open('benford/tests/sample_data/census_2009b', 'rb') as uploaded_file:
             payload = {
-                'relevant_column': 2,
+                # We don't need to pass the 'relevant_column' parameter
+                # since it will be detected automatically (first number).
+                # 'relevant_column': 2,
                 'has_header': True,
             }
             payload_files = {

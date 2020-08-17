@@ -171,6 +171,13 @@ class AnalyzerHelperFunctionsTest(SimpleTestCase):
         self.assertEqual(
             find_relevant_column("a\tb2\tc3\td"), DEFAULT_RELEVANT_COLUMN)
 
+        # If we provide two lines (the first one can be a header) it also
+        # will be analyzed.
+        self.assertEqual(find_relevant_column(
+            first_line="a\tb\tc\td",
+            second_line="x\ty\t3\tz",
+        ), 2)
+
 
 class BenfordAnalyzerInputsTest(SimpleTestCase):
     def test_empty_input(self):
