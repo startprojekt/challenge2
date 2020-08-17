@@ -5,6 +5,7 @@ from decimal import Decimal
 import numpy
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
+from django.db import transaction
 from django.forms import Form
 from pydash import get
 from scipy.stats import chisquare
@@ -177,7 +178,12 @@ class BenfordAnalyzer:
     def get_digits_list(self):
         return range(1, self.base)
 
-    def save(self):
+    def save(self) -> Dataset:
+        with transaction.atomic():
+            dataset = self._perform_save()
+        return dataset
+
+    def _perform_save(self) -> Dataset:
         self.dataset.save()
         new_digits = []
         existing_digits = []
@@ -191,8 +197,7 @@ class BenfordAnalyzer:
                 significant_digit = SignificantDigit(
                     dataset=self.dataset,
                     digit=digit,
-                    occurences=occurences,
-                )
+                    occurences=occurences)
                 new_digits.append(significant_digit)
 
         if new_digits:

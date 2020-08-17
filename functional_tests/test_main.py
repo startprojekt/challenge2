@@ -1,5 +1,4 @@
 import os
-import time
 
 from django.conf import settings
 from django.test import LiveServerTestCase
@@ -43,7 +42,8 @@ class MainViewTest(LiveServerTestCase):
         # We expect to navigate to upload form page
         element = WebDriverWait(self.browser, 5).until(
             expected_conditions.presence_of_element_located(
-                (By.ID, 'form-upload-dataset')))
+                (By.ID, 'form-upload-dataset')),
+            message="No form with id='form-upload-dataset' available on the page.")
         self.assertEqual(self.browser.current_url, self.live_server_url + '/upload/')
 
     def test_dataset_upload_form(self):
@@ -63,7 +63,8 @@ class MainViewTest(LiveServerTestCase):
         WebDriverWait(self.browser, 3).until(
             expected_conditions.presence_of_element_located(
                 (By.XPATH,
-                 '//li[text()[contains(.,"Please provide either file or raw data.")]]')))
+                 '//li[text()[contains(.,"Please provide either file or raw data.")]]')),
+            message="There was no error message displayed from the form.")
 
         # So we upload our sample real-world data file.
         upload_field = self.browser.find_element_by_id('id_data_file')
@@ -76,10 +77,12 @@ class MainViewTest(LiveServerTestCase):
         # The form should be submitted
         submit_button_2 = self.browser.find_element_by_id('id_submit')
         submit_button_2.click()
-        time.sleep(3)
 
         # And we land on a dataset page.
-        self.assertIn('My first dataset', self.browser.title)
+        WebDriverWait(self.browser, 3).until(
+            expected_conditions.title_contains('My first dataset'),
+            message="Page title didn't change as expected. "
+                    "It should contain 'My first dataset'.")
 
     def test_dataset_detail_page(self):
         # We create some dataset.

@@ -1,9 +1,7 @@
 from django.db import models
-from django.db.models import Sum
 from django.urls import reverse
 
-from benford.core import get_expected_distribution
-from benford.utils import calc_percentage, generate_random_identifier
+from benford.utils import generate_random_identifier
 
 
 class Dataset(models.Model):
@@ -31,9 +29,6 @@ class SignificantDigit(models.Model):
         'Dataset', on_delete=models.CASCADE, related_name='significant_digits')
     digit = models.PositiveSmallIntegerField()
     occurences = models.PositiveIntegerField()
-
-    def benford_percentage(self):
-        return get_expected_distribution(self.digit, self.dataset.base)
 
     class Meta:
         unique_together = [
