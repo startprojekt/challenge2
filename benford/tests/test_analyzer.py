@@ -1,8 +1,12 @@
 from decimal import Decimal
 
+from django.test import SimpleTestCase
 from django.test.testcases import TestCase
 
-from benford.analyzer import BenfordAnalyzer
+from benford.analyzer import (
+    BenfordAnalyzer, auto_detect_delimiter, find_relevant_column, DEFAULT_DELIMITER,
+    DEFAULT_RELEVANT_COLUMN,
+)
 from benford.core import (
     EXPECTED_BENFORD_LAW_DISTRIBUTION,
 )
@@ -144,3 +148,63 @@ class BenfordAnalyzerTest(TestCase):
         analyzer = BenfordAnalyzer.create_from_model(dataset)
         self.assertEqual(analyzer.dataset.pk, dataset.pk)
         self.assertEqual(analyzer.title, 'My dataset')
+
+
+class AnalyzerHelperFunctionsTest(SimpleTestCase):
+    def test_auto_detect_delimiter(self):
+        self.assertEqual(auto_detect_delimiter("1"), DEFAULT_DELIMITER)
+        self.assertEqual(auto_detect_delimiter("a\t1"), "\t")
+        self.assertEqual(auto_detect_delimiter("a;b;1"), ";")
+        self.assertEqual(auto_detect_delimiter("a,b,c,1"), ",")
+        self.assertEqual(auto_detect_delimiter("a,b;c;1"), ";")
+
+    def test_auto_find_relevant_column(self):
+        self.assertEqual(find_relevant_column("1"), 0)
+        self.assertEqual(find_relevant_column("a;b;1"), 2)
+        self.assertEqual(find_relevant_column("a\t1"), 1)
+        self.assertEqual(find_relevant_column("a\tb\tc\t1"), 3)
+
+        # If we don't find a relevant column
+        # we leave it by a default value (DEFAULT_RELEVANT_COLUMN)
+        self.assertEqual(
+            find_relevant_column("a\tb\tc\td"), DEFAULT_RELEVANT_COLUMN)
+        self.assertEqual(
+            find_relevant_column("a\tb2\tc3\td"), DEFAULT_RELEVANT_COLUMN)
+
+
+class BenfordAnalyzerInputsTest(SimpleTestCase):
+    def test_empty_input(self):
+        analyzer = BenfordAnalyzer.create_from_string("")
+        self.assertEqual(analyzer.total_occurences, 0)
+
+    def test_invalid_inputs(self):
+        analyzer_1 = BenfordAnalyzer.create_from_string("a")
+        self.assertEqual(analyzer_1.total_occurences, 0)
+        self.assertTrue(analyzer_1.has_errors)
+
+        # No digits at all.
+        analyzer_2 = BenfordAnalyzer.create_from_string("a\nb\nc")
+        self.assertEqual(analyzer_2.total_occurences, 0)
+        self.assertTrue(analyzer_2.has_errors)
+        self.assertTrue(analyzer_2.error_count, 3)
+        self.assertTrue(analyzer_2.error_rows, {0, 1, 2})
+
+        # Rows with some errors
+        analyzer_2 = BenfordAnalyzer.create_from_string("a\n1\nc")
+        self.assertEqual(analyzer_2.total_occurences, 1)
+        self.assertEqual(analyzer_2.get_occurences_for_digit(1), 1)
+        self.assertTrue(analyzer_2.has_errors)
+        self.assertEqual(analyzer_2.error_count, 2)
+        self.assertSetEqual(analyzer_2.error_rows, {0, 2})
+
+    def test_csv_inputs(self):
+        analyzer_1 = BenfordAnalyzer.create_from_string("a\t1\nb\t2\nc\t3\nd\t123")
+        self.assertEqual(analyzer_1.total_occurences, 4)
+        self.assertEqual(analyzer_1.get_occurences_for_digit(1), 2)
+        self.assertEqual(analyzer_1.get_percentage_for_digit(1), Decimal('50'))
+        self.assertFalse(analyzer_1.has_errors)
+
+    def test_valid_inputs(self):
+        analyzer_1 = BenfordAnalyzer.create_from_string("1")
+        self.assertEqual(analyzer_1.total_occurences, 1)
+        self.assertFalse(analyzer_1.has_errors)

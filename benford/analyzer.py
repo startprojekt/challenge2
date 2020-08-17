@@ -9,7 +9,10 @@ from django.forms import Form
 from pydash import get
 from scipy.stats import chisquare
 
-from benford.conf import DEFAULT_BASE, BENFORD_LAW_COMPLIANCE_STAT_SIG
+from benford.conf import (
+    DEFAULT_BASE, BENFORD_LAW_COMPLIANCE_STAT_SIG, DEFAULT_RELEVANT_COLUMN, DEFAULT_DELIMITER,
+    ALLOWED_DELIMITERS,
+)
 from benford.core import (
     get_first_significant_digit, get_expected_distribution, get_expected_distribution_flat,
     count_occurences_with_percentage, get_degrees_of_freedom_for_base,
@@ -57,23 +60,32 @@ class BenfordAnalyzer:
 
     @classmethod
     def create_from_string(cls, payload: str, **kwargs):
-        return cls.create_from_csv(
-            io.StringIO(payload), **kwargs)
+        return cls.create_from_csv(io.StringIO(payload), **kwargs)
 
     @classmethod
     def create_from_file(cls, data_file: File, **kwargs):
         return cls.create_from_csv(
-            io.StringIO(data_file.read().decode('utf-8')), **kwargs
-        )
+            io.StringIO(data_file.read().decode('utf-8')), **kwargs)
 
     @classmethod
     def create_from_csv(
-            cls, data, delimiter='\t', **kwargs
+            cls,
+            data: io.StringIO,
+            delimiter='\t',
+            relevant_column: int = None,
+            has_header: bool = False,
+            title: str = '',
     ):
-        relevant_column = get(kwargs, 'relevant_column', 0) or 0
-        has_header = get(kwargs, 'has_header', False)
-        title = get(kwargs, 'title', '')
+        assert delimiter in ALLOWED_DELIMITERS, \
+            f"The `delimiter` argument must be one of {ALLOWED_DELIMITERS}. " \
+            f"Got `{delimiter}` instead."
+
+        first_line: str = data.readline()
+        delimiter = delimiter or auto_detect_delimiter(first_line) or DEFAULT_DELIMITER
+        relevant_column = relevant_column or find_relevant_column(first_line)
+
         occurences = {}
+        data.seek(0)
         reader = csv.reader(data, delimiter=delimiter)
         row_i = 0
         _error_rows = set()
@@ -133,6 +145,10 @@ class BenfordAnalyzer:
     @property
     def error_rows(self):
         return self._error_rows
+
+    @property
+    def error_count(self):
+        return len(self._error_rows)
 
     def calculate_percentages(self) -> None:
         self.percentages = count_occurences_with_percentage(self.occurences)
@@ -212,3 +228,40 @@ class AnalyzerSummaryRow:
         self.occurences = occurences
         self.percentage = percentage
         self.expected_percentage = expected_percentage
+
+
+def auto_detect_delimiter(row) -> str:
+    for d in ALLOWED_DELIMITERS:
+        if d in row:
+            return d
+    return DEFAULT_DELIMITER
+
+
+def find_relevant_column(row_str: str, delimiter: str = None) -> int:
+    """
+    Finds a first column that contains a number.
+
+    :param row_str:
+    :param delimiter:
+    :return:
+    """
+    delimiter = delimiter or auto_detect_delimiter(row_str) or DEFAULT_DELIMITER
+    reader = csv.reader(io.StringIO(row_str), delimiter=delimiter)
+
+    try:
+        row = next(reader)
+    except StopIteration:
+        return DEFAULT_RELEVANT_COLUMN
+
+    column_no = 0
+    first_number = None
+
+    for v in row:
+        try:
+            first_number = float(v)
+            break
+        except ValueError:
+            pass
+        column_no += 1
+
+    return column_no if first_number is not None else DEFAULT_RELEVANT_COLUMN
