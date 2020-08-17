@@ -32,9 +32,6 @@ class SignificantDigit(models.Model):
     digit = models.PositiveSmallIntegerField()
     occurences = models.PositiveIntegerField()
 
-    def calculate_occurence_percentage(self):
-        return calc_percentage(self.occurences, self.dataset.count_records())
-
     def benford_percentage(self):
         return get_expected_distribution(self.digit, self.dataset.base)
 
