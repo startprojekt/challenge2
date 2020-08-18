@@ -1,0 +1,4 @@
+.idea/
+/tmp/
+/static_root/
+*.sqlite3
