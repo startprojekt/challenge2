@@ -13,7 +13,7 @@ Run migrations:
 
 ```docker-compose run web python manage.py migrate```
 
-Start developing server:
+Start Django development server:
 
 ```docker-compose up web```
 
