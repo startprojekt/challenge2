@@ -2,11 +2,22 @@ version: '3'
 services:
   web:
     build: .
-    command: uvicorn frankbenford.asgi:application --bind 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
     ports:
       - "8000:8000"
+    depends_on:
+      - db
+  testing:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    links:
+      - selenium_hub
+      - selenium_firefox
     depends_on:
       - db
   db:
@@ -17,3 +28,18 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+  selenium_hub:
+    container_name: selenium_hub
+    image: selenium/hub
+    ports:
+      - "4444:4444"
+  selenium_firefox:
+    container_name: selenium_firefox
+    image: selenium/node-firefox
+    environment:
+      - HUB_PORT_4444_TCP_ADDR=selenium_hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    ports:
+      - "5900:5900"
+    depends_on:
+      - selenium_hub

@@ -1,11 +1,13 @@
 import os
+import socket
 
 from django.conf import settings
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test import LiveServerTestCase, tag, override_settings
 from django.urls import resolve
+from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.webdriver import WebDriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -15,17 +17,25 @@ from benford.tests.test_forms import create_census_2009b_form
 from benford.views import DashboardView, DatasetUploadView
 
 
-class MainViewTest(LiveServerTestCase):
-    def setUp(self):
-        options = Options()
-        options.add_argument('--headless')
-        self.browser = WebDriver(options=options)
-        self.browser.implicitly_wait(10)
-        super(MainViewTest, self).setUp()
+@tag('selenium')
+@override_settings(ALLOWED_HOSTS=['*'])
+class MainViewTest(StaticLiveServerTestCase):
+    host = '0.0.0.0'
 
-    def tearDown(self) -> None:
-        self.browser.quit()
-        super(MainViewTest, self).tearDown()
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.host = socket.gethostbyname(socket.gethostname())
+        cls.browser = webdriver.Remote(
+            command_executor='http://selenium_hub:4444/wd/hub',
+            desired_capabilities=DesiredCapabilities.FIREFOX,
+        )
+        cls.browser.implicitly_wait(10)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.quit()
+        super().tearDownClass()
 
     def test_dashboard_page(self):
         # Run the page.

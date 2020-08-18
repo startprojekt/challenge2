@@ -20,8 +20,3 @@ COPY . /app/
 # Install static dependencies (e.g. "Bootstrap").
 RUN cd /app/theme/static/ && npm install
 
-# Entrypoint for Django server.
-COPY docker-entrypoint.sh /
-ENTRYPOINT ["bash", "/docker-entrypoint.sh"]
-
-
