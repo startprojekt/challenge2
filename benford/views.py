@@ -52,3 +52,28 @@ class DatasetDetailView(DetailView):
         return DatasetRow.objects.filter(
             dataset=self.analyzer.dataset, has_error=True,
         ).order_by('line')
+
+
+class DatasetRowListView(ListView):
+    paginate_by = 100
+    template_name = 'benford/dataset/browse_data.html'
+    dataset = None
+
+    def get(self, *args, **kwargs):
+        self.dataset = Dataset.objects.get(slug=self.get_slug())
+        return super(DatasetRowListView, self).get(*args, **kwargs)
+
+    def get_queryset(self):
+        return DatasetRow.objects.filter(dataset=self.dataset)
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super(DatasetRowListView, self).get_context_data(*args, **kwargs)
+        ctx['title'] = self.get_view_title()
+        ctx['slug'] = self.get_slug()
+        return ctx
+
+    def get_slug(self):
+        return self.kwargs['slug']
+
+    def get_view_title(self):
+        return f'Browse: {self.dataset.display_title()}'

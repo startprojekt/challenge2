@@ -49,6 +49,10 @@
           </tbody>
         </table>
 
+        <div class="my-3">
+          <a href="{% url 'benford:dataset_rows' slug=dataset.slug %}"
+             class="btn btn-primary btn-block">Browse data</a>
+        </div>
         {#        <div>#}
         {#          The chi-squared test statistic = {{ analyzer.get_chisq_test_statistic }}#}
         {#        </div>#}

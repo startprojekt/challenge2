@@ -10,6 +10,21 @@ from benford.models import DatasetRow, Dataset
 from benford.tests.common import RAW_DATA_SAMPLE_1, RAW_DATA_SAMPLE_2
 
 
+def create_census_2009b_form():
+    with open('benford/tests/sample_data/census_2009b', 'rb') as uploaded_file:
+        payload = {
+            # We don't need to pass the 'relevant_column' parameter
+            # since it will be detected automatically (first number).
+            # 'relevant_column': 2,
+            'has_header': True,
+        }
+        payload_files = {
+            'data_file': SimpleUploadedFile(uploaded_file.name, uploaded_file.read()),
+        }
+    form = DatasetUploadForm(payload, payload_files)
+    return form
+
+
 class DatasetUploadFormTest(TestCase):
     def test_empty_form(self):
         form = DatasetUploadForm({})
@@ -55,26 +70,12 @@ class DatasetUploadFormTest(TestCase):
         self.assertEqual(benford_analyzer.total_occurences, 19)
         self.assertFalse(benford_analyzer.has_errors)
 
-    def _create_census_2009b_form(self):
-        with open('benford/tests/sample_data/census_2009b', 'rb') as uploaded_file:
-            payload = {
-                # We don't need to pass the 'relevant_column' parameter
-                # since it will be detected automatically (first number).
-                # 'relevant_column': 2,
-                'has_header': True,
-            }
-            payload_files = {
-                'data_file': SimpleUploadedFile(uploaded_file.name, uploaded_file.read()),
-            }
-        form = DatasetUploadForm(payload, payload_files)
-        return form
-
     def test_form_with_real_world_file_data(self):
         """
         This is form testing with the "real world" data provided in the challenge.
         """
 
-        form = self._create_census_2009b_form()
+        form = create_census_2009b_form()
         self.assertTrue(form.is_valid())
         self.assertListEqual(list(form.errors), [])
 
@@ -101,7 +102,7 @@ class DatasetUploadFormTest(TestCase):
             })
 
     def test_dataset_rows(self):
-        form = self._create_census_2009b_form()
+        form = create_census_2009b_form()
         self.assertTrue(form.is_valid())
 
         benford_analyzer = BenfordAnalyzer.create_from_form(form)

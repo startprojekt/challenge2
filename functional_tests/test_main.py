@@ -11,6 +11,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from benford.analyzer import BenfordAnalyzer
 from benford.models import Dataset
+from benford.tests.test_forms import create_census_2009b_form
 from benford.views import DashboardView, DatasetUploadView
 
 
@@ -145,3 +146,25 @@ class MainViewTest(LiveServerTestCase):
 
         # There should be a graph image on the page.
         graph_img = self.browser.find_element_by_xpath('//img[contains(@class, "graph")]')
+
+    def test_browsing_data(self):
+        form = create_census_2009b_form()
+        self.assertTrue(form.is_valid())
+        analyzer = BenfordAnalyzer.create_from_form(form)
+        dataset: Dataset = analyzer.save()
+        self.browser.get(self.live_server_url + dataset.get_absolute_url())
+
+        browse_data_link = self.browser.find_element_by_xpath(
+            '//a[text()[contains(.,"Browse data")]]')
+        browse_data_link.click()
+
+        WebDriverWait(self.browser, 3).until(
+            expected_conditions.presence_of_element_located(
+                (By.ID, 'table-dataset-rows')),
+            message="There was no table with id=table-dataset-rows.")
+
+        table = self.browser.find_element_by_id('table-dataset-rows')
+
+        # There should be 100 data rows on the first page.
+        self.assertEqual(
+            len(table.find_elements_by_tag_name('tr')), 100)

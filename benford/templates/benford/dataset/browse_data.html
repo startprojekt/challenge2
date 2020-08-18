@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load benford_tags %}
+
+{% block content %}
+  <div class="container-fluid">
+    {% if page_obj %}
+
+      <div class="my-3">
+        <table id="table-dataset-rows" class="table">
+          {% for row in page_obj %}
+            <tr{% if row.has_error %} class="text-danger"{% endif %}>
+              <td>{{ row.line }}</td>
+              {% for col in row.data %}
+                <td>{{ col }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+
+      {#      TODO make nav tag #}
+      <nav aria-label="Page navigation example">
+        <ul class="pagination flex-wrap">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                Previous</a>
+            </li>
+          {% endif %}
+
+          {% for p in paginator.page_range %}
+            <li class="page-item {% ifequal page_obj.number p %}active{% endifequal %}">
+              <a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                Next</a></li>
+            </ul>
+          {% endif %}
+      </nav>
+
+    {% else %}
+      <div class="row justify-content-center">
+        <div class="col-auto text-center">
+          <div class="text-secondary display-6 m-5">
+            No data available.
+          </div>
+          <a href="{% url 'benford:dataset_detail' slug=slug %}"
+             class="btn btn-primary">
+            Back to dataset view</a>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+
+{% endblock %}
