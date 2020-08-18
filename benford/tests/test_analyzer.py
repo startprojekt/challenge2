@@ -204,6 +204,12 @@ class BenfordAnalyzerInputsTest(SimpleTestCase):
         self.assertEqual(analyzer_2.error_count, 2)
         self.assertSetEqual(analyzer_2.error_rows, {0, 2})
 
+        # Test with empty lines
+        analyzer_3 = BenfordAnalyzer.create_from_string("a\n\nb\n\n\n\n")
+        self.assertEqual(analyzer_3.total_occurences, 0)
+        self.assertTrue(analyzer_3.has_errors)
+        self.assertSetEqual(analyzer_3.error_rows, {0, 1, 2, 3, 4, 5})
+
     def test_csv_inputs(self):
         analyzer_1 = BenfordAnalyzer.create_from_string("a\t1\nb\t2\nc\t3\nd\t123")
         self.assertEqual(analyzer_1.total_occurences, 4)

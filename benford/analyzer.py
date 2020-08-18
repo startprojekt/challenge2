@@ -106,7 +106,7 @@ class BenfordAnalyzer:
             _invalid_row = False
             try:
                 significant_digit = get_first_significant_digit(row[relevant_column])
-            except NoSignificantDigitFound:
+            except (NoSignificantDigitFound, IndexError):
                 significant_digit = None
                 _error_rows.add(row_i)
             finally:
