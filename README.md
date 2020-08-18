@@ -9,6 +9,8 @@ Build and run Django server:
 
 ```docker-compose up web```
 
+The website should be accessible from [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+
 Tests
 -----
 
