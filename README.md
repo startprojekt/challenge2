@@ -5,7 +5,15 @@ Benford's Law Challenge
 Install and run
 ---------------
 
-Build and run Django server:
+Build and run Django migrations:
+
+```docker-compose build --no-cache```
+
+Run migrations:
+
+```docker-compose run web python manage.py migrate```
+
+Start developing server:
 
 ```docker-compose up web```
 
