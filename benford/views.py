@@ -64,7 +64,7 @@ class DatasetRowListView(ListView):
         return super(DatasetRowListView, self).get(*args, **kwargs)
 
     def get_queryset(self):
-        return DatasetRow.objects.filter(dataset=self.dataset)
+        return DatasetRow.objects.filter(dataset=self.dataset).order_by('line')
 
     def get_context_data(self, *args, **kwargs):
         ctx = super(DatasetRowListView, self).get_context_data(*args, **kwargs)
