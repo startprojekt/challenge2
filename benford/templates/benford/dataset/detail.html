@@ -70,6 +70,7 @@
       <div class="row">
         <div class="col">
           <table class="table">
+            <tbody>
             {% for row in dataset_rows %}
               <tr class="text-danger">
                 <td>{{ row.line }}</td>
@@ -78,6 +79,7 @@
                 {% endfor %}
               </tr>
             {% endfor %}
+            </tbody>
           </table>
         </div>
       </div>
