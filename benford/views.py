@@ -69,6 +69,7 @@ class DatasetRowListView(ListView):
     def get_context_data(self, *args, **kwargs):
         ctx = super(DatasetRowListView, self).get_context_data(*args, **kwargs)
         ctx['title'] = self.get_view_title()
+        ctx['dataset'] = self.dataset
         ctx['slug'] = self.get_slug()
         return ctx
 

@@ -1,12 +1,23 @@
 {% extends "base.html" %}
-{% load benford_tags %}
+{% load benford_tags pagination_tags %}
 
 {% block content %}
-  <div class="container-fluid">
+  <div class="container-fluid py-3">
+    <div class="row align-items-center">
+      <div class="col-auto">
+        <a href="{% url 'benford:dataset_detail' dataset.slug %}"
+           class="text-secondary">{% include "_back_arrow.html" %}</a>
+      </div>
+      <div class="col"><h1>{{ dataset.display_title }}</h1></div>
+    </div>
+    <h2>Browse data</h2>
+
     {% if page_obj %}
 
+      {% pagination paginator page_obj %}
+
       <div class="my-3">
-        <table id="table-dataset-rows" class="table">
+        <table id="table-dataset-rows" class="table table-hover">
           {% for row in page_obj %}
             <tr{% if row.has_error %} class="text-danger"{% endif %}>
               <td>{{ row.line }}</td>
@@ -18,28 +29,7 @@
         </table>
       </div>
 
-      {#      TODO make nav tag #}
-      <nav aria-label="Page navigation example">
-        <ul class="pagination flex-wrap">
-          {% if page_obj.has_previous %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
-                Previous</a>
-            </li>
-          {% endif %}
-
-          {% for p in paginator.page_range %}
-            <li class="page-item {% ifequal page_obj.number p %}active{% endifequal %}">
-              <a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
-          {% endfor %}
-
-          {% if page_obj.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}">
-                Next</a></li>
-            </ul>
-          {% endif %}
-      </nav>
+      {% pagination paginator page_obj %}
 
     {% else %}
       <div class="row justify-content-center">

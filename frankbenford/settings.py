@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crispy_forms',
     'sass_processor',
+    'pagination',
     'theme',
     'benford',
 ]
