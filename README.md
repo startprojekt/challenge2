@@ -13,6 +13,10 @@ Run migrations:
 
 ```docker-compose run web python manage.py migrate```
 
+Install npm packages in static folder:
+
+```docker-compose run -w /app/theme/static web npm install```
+
 Start Django development server:
 
 ```docker-compose up web```
