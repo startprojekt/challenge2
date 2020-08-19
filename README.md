@@ -33,6 +33,22 @@ In order to perform automated tests run command:
 
 ```docker-compose run --rm testing python manage.py test```
 
+After pulling necessary images you should see end result:
+
+```
+Starting challenge2_db_1 ... done
+Creating selenium_hub ... done
+Creating selenium_firefox ... done
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+........................................
+----------------------------------------------------------------------
+Ran 40 tests in 22.658s
+
+OK
+Destroying test database for alias 'default'...
+``` 
+
 
 Challenge
 ---------
