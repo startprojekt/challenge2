@@ -1,3 +1,6 @@
+import mimetypes
+
+import magic
 from crispy_forms.layout import Layout, Submit, Field, Div
 from django import forms
 from pydash import get
@@ -26,6 +29,15 @@ class DatasetUploadForm(CrispyFormMixin, forms.Form):
         if not (data_file or data_raw):
             self.add_error(None, forms.ValidationError('Please provide either file or raw data.'))
         return super(DatasetUploadForm, self).clean()
+
+    def clean_data_file(self):
+        file = self.cleaned_data['data_file']
+        if file is not None:
+            file_type = magic.from_buffer(file.read(1024), mime=True)
+            file.seek(0)
+            if not file_type.startswith('text/'):
+                self.add_error('data_file', 'Uploaded file must be a text file.')
+        return file
 
     def get_form_layout(self) -> Layout:
         return Layout(
