@@ -1,5 +1,3 @@
-import mimetypes
-
 import magic
 from crispy_forms.layout import Layout, Submit, Field, Div
 from django import forms
